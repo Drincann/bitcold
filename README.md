@@ -5,16 +5,12 @@ bitcold is an open-source, lightweight command-line tool designed for easy manag
 # Installation
 
 ```fish
-git clone git@github.com:Drincann/bitcold.git
-cd bitcold
-npm i
-npx tsc
-npm link
+npm install -g bitcold
 ```
 
 # Usage
 
-## Address
+## Wallet
 
 Create a new wallet
 
@@ -56,6 +52,26 @@ Delete wallet
 
 ```fish
 bitcold wallet remove my-wallet
+```
+
+## Account
+
+Add a derived account to a wallet
+
+```fish
+bitcold wallet account add my-wallet
+```
+
+Add with a custom alias and derivation index
+
+```fish
+bitcold wallet account add my-wallet savings --index 5
+```
+
+Remove an account from a wallet
+
+```fish
+bitcold wallet account remove my-wallet savings
 ```
 
 ## Transaction
