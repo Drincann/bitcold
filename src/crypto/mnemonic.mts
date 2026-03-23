@@ -6,9 +6,18 @@ import * as mnemoniclib from 'bip39'
 import { Mnemonic } from '../domain/types.mjs';
 import { getBtcNetwork } from '../env/index.mjs';
 
+/** BIP44 ETH + BIP84 BTC 前缀；最后一档 `/{index}` 由 `derive` / `derivationPath` 拼接。 */
+export const ETH_DERIVATION_PATH_PREFIX = "m/44'/60'/0'/0" as const
+export const BTC_DERIVATION_PATH_PREFIX = "m/84'/0'/0'/0" as const
+
 const path = {
-  ethPath: "m/44'/60'/0'/0",
-  btcPath: "m/84'/0'/0'/0"
+  ethPath: ETH_DERIVATION_PATH_PREFIX,
+  btcPath: BTC_DERIVATION_PATH_PREFIX
+}
+
+export function derivationPath(chain: 'ETH' | 'BTC', index: number): string {
+  const base = chain === 'ETH' ? ETH_DERIVATION_PATH_PREFIX : BTC_DERIVATION_PATH_PREFIX
+  return `${base}/${index}`
 }
 
 const bip32 = BIP32Factory(ecc)

@@ -7,6 +7,7 @@ import { WalletData, StoredWalletData } from '../../../domain/types.mjs';
 import { hexSha256 } from '../../../crypto/hash.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { CliError } from '../../../error/cli-error.mjs';
+import { derivationPath } from '../../../crypto/mnemonic.mjs';
 
 export const walletShowCommand = new Command()
   .name('show')
@@ -41,8 +42,11 @@ export function show(wallet: Wallet, opts: { chain: Set<string>, private: boolea
   printer.info(`[Alias]: ${wallet.alias}`);
   if (opts.mnemonic) printer.info(`[Mnemonic]: ${wallet.mnemonic.words}`);
   printer.info('[Accounts]:');
-  [...wallet.accounts.entries()].forEach(([alias, account], i) => {
-    printer.info(`  ${i}.${alias}:`)
+  [...wallet.accounts.entries()].forEach(([alias, account]) => {
+    printer.info(`  ${alias}:`)
+    printer.info(
+      `    path: ETH ${derivationPath('ETH', account.index)} | BTC ${derivationPath('BTC', account.index)}`
+    )
     Object.entries(account.addresses).forEach(([network, address]) => {
       if (opts.chain.has(network) || opts.chain.size === 0) {
         printer.info(`    ${network}: <address> ${address.address}`)

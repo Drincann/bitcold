@@ -16,6 +16,17 @@ class WalletRepository {
     await storage.save('wallets', [...await storage.load('wallets') ?? [], wallet])
   }
 
+  public async updateWallet(wallet: StoredWalletData): Promise<void> {
+    const wallets = await storage.load('wallets') ?? []
+    const idx = wallets.findIndex(w => w.alias === wallet.alias)
+    if (idx === -1) {
+      throw new Error(`Wallet '${wallet.alias}' not found`)
+    }
+    const next = [...wallets]
+    next[idx] = wallet
+    await storage.save('wallets', next)
+  }
+
   public async remove(walletAlias: string) {
     storage.save('wallets', (await storage.load('wallets')).filter(wallet => wallet.alias !== walletAlias))
   }

@@ -4,6 +4,7 @@ import { walletRenameCommand } from './wallet/rename.mjs';
 import { walletShowCommand } from './wallet/show.mjs';
 import { walletListCommand } from './wallet/list.mjs';
 import { walletRemoveCommand } from './wallet/remove.mjs';
+import { walletAccountCommand } from './wallet/account.mjs';
 
 import { txSignCommand } from './tx/sign.mjs';
 import { txBroadcastCommand } from './tx/broadcast.mjs';
@@ -17,6 +18,7 @@ export const walletCommand = new Command()
   .addCommand(walletShowCommand)
   .addCommand(walletListCommand)
   .addCommand(walletRemoveCommand)
+  .addCommand(walletAccountCommand)
 
 export const txCommand = new Command()
   .name('tx')
