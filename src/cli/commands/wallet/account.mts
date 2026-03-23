@@ -30,7 +30,7 @@ function generateNextAccountAlias(accounts: Map<string, Account>): string {
 }
 
 export const walletAccountAddCommand = new Command('add')
-  .description('Add a derived account (new ETH/BTC addresses) to an existing wallet')
+  .description('Add a derived account (new BTC address) to an existing wallet')
   .argument('<wallet-alias>', 'Wallet alias')
   .argument('[account-alias]', 'Account alias for wallet@alias (omit for account_0, account_1, …)')
   .option<number>('-i --index <n>', 'BIP44 derivation index (default: smallest unused index from 0)', v => parseInt(v, 10))
@@ -61,7 +61,7 @@ export const walletAccountAddCommand = new Command('add')
       await repos.wallet.updateWallet(await wallet.serialize())
 
       printer.info(`Account '${accountAlias}' added to wallet '${walletAlias}'`)
-      show(wallet, { chain: new Set(), private: false, mnemonic: false })
+      show(wallet, { private: false, mnemonic: false })
     } catch (e: unknown) {
       if (e instanceof CliError || e instanceof CliParameterError) {
         printer.error(e.message)
@@ -111,7 +111,7 @@ export const walletAccountRemoveCommand = new Command('remove')
       await repos.wallet.updateWallet(await wallet.serialize())
 
       printer.info(`Account '${trimmedAccount}' removed from wallet '${walletAlias}'`)
-      show(wallet, { chain: new Set(), private: false, mnemonic: false })
+      show(wallet, { private: false, mnemonic: false })
     } catch (e: unknown) {
       if (e instanceof CliError || e instanceof CliParameterError) {
         printer.error(e.message)

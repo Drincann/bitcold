@@ -157,7 +157,7 @@ export class UserHomeJsonStorage<
 }
 
 const getStorageRoot = () => {
-  return path.resolve(getUserHome(), '.cry0')
+  return path.resolve(getUserHome(), '.bitcold')
 }
 
 const createIfNotExists = async (dir: string) => {

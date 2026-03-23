@@ -1,8 +1,7 @@
-export type Blockchain = 'ETH' | 'BTC'
+export type Blockchain = 'BTC'
 
 export type Fee<Blockchain> =
-  Blockchain extends 'ETH' ? { gasLimit: string, gasPrice: string }
-  : Blockchain extends 'BTC' ? { sats: number }
+  Blockchain extends 'BTC' ? { sats: number }
   : never
 
 export interface Mnemonic {

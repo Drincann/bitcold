@@ -56,26 +56,6 @@ export function isNotValidBtcAddressOrRef(address?: unknown): boolean {
   }
 }
 
-export function isNotValidEthAddress(address?: unknown): boolean {
-  if (typeof address !== 'string' || (address?.trim?.()?.length ?? 0) === 0) {
-    return true
-  }
-
-  if (isAddressRef(address)) {
-    return false
-  }
-
-  if (!address.startsWith('0x') || address.length !== 42) {
-    return true
-  }
-
-  if (isNotValidHex(address)) {
-    return true
-  }
-
-  return false
-}
-
 export function isNotValidHex(address: string): boolean {
   return !/^(0x)?[0-9a-fA-F]+$/.test(address)
 }
