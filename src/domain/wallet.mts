@@ -22,6 +22,38 @@ export class Wallet {
     return new Wallet(alias, mnemonic, [new Account(mnemonic, 0, 'default')])
   }
 
+  public addAccount(accountAlias: string, index?: number): void {
+    const normalizedAlias = accountAlias.trim()
+    if (this.accounts.has(normalizedAlias)) {
+      throw new CliParameterError(`Account '${normalizedAlias}' already exists in wallet '${this.alias}'`)
+    }
+    const usedIndices = new Set([...this.accounts.values()].map(a => a.index))
+    let resolvedIndex: number
+    if (index !== undefined) {
+      if (!Number.isInteger(index) || index < 0) {
+        throw new CliParameterError('Derivation index must be a non-negative integer')
+      }
+      if (usedIndices.has(index)) {
+        throw new CliParameterError(`Derivation index ${index} is already used in this wallet`)
+      }
+      resolvedIndex = index
+    } else {
+      resolvedIndex = firstUnusedDerivationIndex(usedIndices)
+    }
+    this.accounts.set(normalizedAlias, new Account(this.mnemonic, resolvedIndex, normalizedAlias))
+  }
+
+  public removeAccount(accountAlias: string): void {
+    const normalizedAlias = accountAlias.trim()
+    if (!this.accounts.has(normalizedAlias)) {
+      throw new CliParameterError(`Account '${normalizedAlias}' not found in wallet '${this.alias}'`)
+    }
+    if (this.accounts.size <= 1) {
+      throw new CliParameterError('Cannot remove the last account in a wallet')
+    }
+    this.accounts.delete(normalizedAlias)
+  }
+
   public static async from(data: StoredWalletData): Promise<Wallet> {
     const walletData: WalletData = {
       ...data,
@@ -84,5 +116,12 @@ async function hashMatches(passphraseSha256: string | undefined, value: string):
 
 function isNonEmptyString(passphrase: string | undefined): boolean {
   return typeof passphrase === 'string' && passphrase.length > 0;
+}
+
+/** Smallest non-negative integer not used by any account (fills gaps before extending). */
+function firstUnusedDerivationIndex(used: Set<number>): number {
+  let n = 0
+  while (used.has(n)) n += 1
+  return n
 }
 
