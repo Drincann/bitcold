@@ -1,3 +1,4 @@
+import QRCode from 'qrcode'
 import { Command } from 'commander'
 import { printer } from '../../output/index.mjs'
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs'
@@ -50,6 +51,7 @@ export const txSignCommand = new Command()
     return list
   }, [] as string[])
   .option('--broadcast <provider-name-or-url>', 'broadcast provider name or url')
+  .option('--qr', 'Display signed transaction as QR code in terminal')
   .action(async (_: TxSignParameters, cmd) => {
     try {
       const opts = check(_)
@@ -71,6 +73,11 @@ export const txSignCommand = new Command()
       printer.info('Fee rate: ' + (opts.fee / vsize).toFixed(2) + ' sats/vbyte')
       printer.info('Signed transaction (' + vsize + ' vbytes):')
       printer.info(signedTx.hex())
+
+      if (cmd.opts().qr) {
+        const qr = await QRCode.toString(signedTx.hex(), { type: 'terminal', small: true })
+        printer.info('\n' + qr)
+      }
 
       if (opts.broadcast) {
         printer.info('\nBroadcasting transaction to ' + opts.broadcast.name)
