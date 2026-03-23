@@ -14,17 +14,17 @@ const netMappings = {
 
 let networkSelectNotified = false;
 export function getBtcNetwork(): Network {
-  const definedNetwork = emptyToUndefined(process.env.CRYO_GLOBAL_BITCOIN_NETWORK)
+  const definedNetwork = emptyToUndefined(process.env.BITCOLD_BITCOIN_NETWORK)
   if (definedNetwork === undefined) {
     if (!networkSelectNotified) {
-      console.warn('CRYO_GLOBAL_BITCOIN_NETWORK is not set, using mainnet')
+      console.warn('BITCOLD_BITCOIN_NETWORK is not set, using mainnet')
       networkSelectNotified = true
     }
     return networks.bitcoin
   }
 
   if (!networkSelectNotified) {
-    console.warn('CRYO_GLOBAL_BITCOIN_NETWORK is set to ' + definedNetwork)
+    console.warn('BITCOLD_BITCOIN_NETWORK is set to ' + definedNetwork)
     networkSelectNotified = true
   }
 
@@ -36,7 +36,7 @@ function emptyToUndefined(value: string | undefined): string | undefined {
 }
 
 export async function ensureCliLevelSecretInitialized() {
-  let cliPassphrase = emptyToUndefined(process.env.CRYO_GLOBAL_PASSPHRASE)
+  let cliPassphrase = emptyToUndefined(process.env.BITCOLD_PASSPHRASE)
   const secretSha256 = await repositories.secret.get()
   if (secretSha256 === undefined) {
     if (cliPassphrase === undefined) {

@@ -7,14 +7,13 @@ import { WalletData, StoredWalletData } from '../../../domain/types.mjs';
 import { hexSha256 } from '../../../crypto/hash.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { CliError } from '../../../error/cli-error.mjs';
-import { derivationPath } from '../../../crypto/mnemonic.mjs';
+import { BTC_DERIVATION_PATH_PREFIX } from '../../../crypto/mnemonic.mjs';
 
 export const walletShowCommand = new Command()
   .name('show')
   .description('Show wallet details')
 
   .command('show <wallet-alias>')
-  .option<Set<string>>('-c --chain <chain>', 'Show only addresses for a specific chain', (chain) => new Set(chain.split(',').map(c => c.toUpperCase())), new Set())
   .option('-p --private', 'Show private keys')
   .option('-m --mnemonic', 'Show mnemonic')
 
@@ -38,20 +37,17 @@ export const walletShowCommand = new Command()
     }
   })
 
-export function show(wallet: Wallet, opts: { chain: Set<string>, private: boolean, mnemonic: boolean }) {
+export function show(wallet: Wallet, opts: { private: boolean, mnemonic: boolean }) {
   printer.info(`[Alias]: ${wallet.alias}`);
   if (opts.mnemonic) printer.info(`[Mnemonic]: ${wallet.mnemonic.words}`);
   printer.info('[Accounts]:');
   [...wallet.accounts.entries()].forEach(([alias, account]) => {
     printer.info(`  ${alias}:`)
     printer.info(
-      `    path: ETH ${derivationPath('ETH', account.index)} | BTC ${derivationPath('BTC', account.index)}`
+      `    <path> ${BTC_DERIVATION_PATH_PREFIX}/${account.index}`
     )
-    Object.entries(account.addresses).forEach(([network, address]) => {
-      if (opts.chain.has(network) || opts.chain.size === 0) {
-        printer.info(`    ${network}: <address> ${address.address}`)
-        if (opts.private) printer.info(`         <private> ${address.privateKey}`)
-      }
-    });
+    const address = account.addresses.BTC
+    printer.info(`    <address> ${address.address}`)
+    if (opts.private) printer.info(`    <private> ${address.privateKey}`)
   });
 }

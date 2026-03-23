@@ -52,7 +52,7 @@ export const walletCreateCommand = new Command()
 
       if (opts.ephemeral) {
         printer.info(`Ephemeral wallet created! (not saved)`)
-        show(wallet, { chain: new Set(), private: true, mnemonic: true })
+        show(wallet, { private: true, mnemonic: true })
         return;
       }
 

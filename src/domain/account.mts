@@ -1,4 +1,4 @@
-import { Address, createBtcAddress, createEthAddress } from "./address.mjs";
+import { BtcAddress, createBtcAddress } from "./address.mjs";
 import * as mnemonicUtil from '../crypto/mnemonic.mjs'
 import { Mnemonic } from "./types.mjs";
 import { AccountData } from "./types.mjs";
@@ -6,7 +6,7 @@ import { AccountData } from "./types.mjs";
 export class Account {
   index: number;
   alias: string;
-  addresses: { ETH: Address; BTC: Address; };
+  addresses: { BTC: BtcAddress; };
 
   constructor(mnemonic: Mnemonic, index: number, alias: string) {
     this.index = index
@@ -15,14 +15,11 @@ export class Account {
   }
 
   private static createAddress(mnemonic: Mnemonic, index: number, alias: string): {
-    ETH: Address;
-    BTC: Address;
+    BTC: BtcAddress;
   } {
-
-    const keypairs = mnemonicUtil.derive(mnemonic, index)
+    const keypair = mnemonicUtil.derive(mnemonic, index)
     return {
-      ETH: createEthAddress(alias, keypairs.ETH.privateKey, keypairs.ETH.publicKey, keypairs.ETH.address),
-      BTC: createBtcAddress(alias, keypairs.BTC.privateKey, keypairs.BTC.publicKey, keypairs.BTC.address)
+      BTC: createBtcAddress(alias, keypair.privateKey, keypair.publicKey, keypair.address)
     }
   }
 

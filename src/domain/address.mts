@@ -11,23 +11,6 @@ export interface Address {
   publicKey: string
 }
 
-export class EthAddress implements Address {
-  alias: string
-  address: string
-  privateKey: string
-  publicKey: string
-
-  constructor(alias: string, privateKey: string, publicKey: string, address: string) {
-    this.alias = alias
-    this.address = address
-    this.privateKey = privateKey
-    this.publicKey = publicKey
-  }
-
-  sign(_: string): Promise<string> {
-    throw new Error('ETH address does not support signing')
-  }
-}
 export class BtcAddress implements Address {
   alias: string
   address: string
@@ -57,16 +40,9 @@ export class BtcAddress implements Address {
   }
 }
 
-export function createEthAddress(
-  alias: string,
-  privateKey: string, publicKey: string, address: string
-): Address {
-  return new EthAddress(alias, privateKey, publicKey, address)
-}
-
 export function createBtcAddress(
   alias: string,
   privateKey: { hex: string; wif: string }, publicKey: string, address: string
-): Address {
+): BtcAddress {
   return new BtcAddress(alias, privateKey, publicKey, address)
 }
