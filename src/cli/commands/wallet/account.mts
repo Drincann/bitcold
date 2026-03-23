@@ -30,7 +30,7 @@ function generateNextAccountAlias(accounts: Map<string, Account>): string {
 }
 
 export const walletAccountAddCommand = new Command('add')
-  .description('Add a derived account (new BTC address) to an existing wallet')
+  .description('Add a derived account to an existing wallet')
   .argument('<wallet-alias>', 'Wallet alias')
   .argument('[account-alias]', 'Account alias for wallet@alias (omit for account_0, account_1, …)')
   .option<number>('-i --index <n>', 'BIP44 derivation index (default: smallest unused index from 0)', v => parseInt(v, 10))

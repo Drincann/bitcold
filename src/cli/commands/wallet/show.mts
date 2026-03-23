@@ -44,10 +44,10 @@ export function show(wallet: Wallet, opts: { private: boolean, mnemonic: boolean
   [...wallet.accounts.entries()].forEach(([alias, account]) => {
     printer.info(`  ${alias}:`)
     printer.info(
-      `    path: ${BTC_DERIVATION_PATH_PREFIX}/${account.index}`
+      `    <path> ${BTC_DERIVATION_PATH_PREFIX}/${account.index}`
     )
     const address = account.addresses.BTC
-    printer.info(`    BTC: <address> ${address.address}`)
-    if (opts.private) printer.info(`         <private> ${address.privateKey}`)
+    printer.info(`    <address> ${address.address}`)
+    if (opts.private) printer.info(`    <private> ${address.privateKey}`)
   });
 }

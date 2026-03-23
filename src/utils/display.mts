@@ -6,5 +6,5 @@ export function accountSummary(accounts: Map<string, Account>) {
 }
 
 export function addressSummary(addresses: { BTC: BtcAddress; }) {
-  return `BTC ${addresses.BTC.address.slice(0, 4)}...${addresses.BTC.address.slice(-4)}`;
+  return `${addresses.BTC.address.slice(0, 4)}...${addresses.BTC.address.slice(-4)}`;
 }
