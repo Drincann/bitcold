@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bitcold - Bitcoin Cold Wallet CLI</title>
+<meta name="description" content="A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0a;
+  --bg-elevated: #111;
+  --bg-surface: #1a1a1a;
+  --border: #2a2a2a;
+  --border-light: #333;
+  --text: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-dim: #71717a;
+  --accent: #4ade80;
+  --font-code: 'JetBrains Mono', monospace;
+  --font-body: 'Inter', system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 120px 0 80px;
+  text-align: center;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 70%);
+}
+
+.hero-bg span {
+  position: absolute;
+  font-family: var(--font-code);
+  font-size: 11px;
+  color: #4ade80;
+  white-space: nowrap;
+}
+
+.hero-content { position: relative; z-index: 1; }
+
+.hero h1 {
+  font-family: var(--font-code);
+  font-size: 4.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 16px;
+}
+
+.hero h1 .accent { color: var(--accent); }
+
+.hero .tagline {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 520px;
+  margin: 0 auto 40px;
+}
+
+.install-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  font-family: var(--font-code);
+  font-size: 0.95rem;
+  border-radius: 0;
+}
+
+.install-box .dollar { color: var(--text-dim); user-select: none; }
+.install-box code { color: var(--text); }
+
+.install-box .copy-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  border-radius: 0;
+  transition: color 0.15s, border-color 0.15s;
+}
+.install-box .copy-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.hero-links {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 0.9rem;
+}
+
+.hero-links a {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.hero-links a:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  text-decoration: none;
+}
+
+/* ── Section ── */
+section { padding: 80px 0; }
+
+.section-title {
+  font-family: var(--font-code);
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 40px;
+  color: var(--text);
+}
+
+.section-title .accent { color: var(--accent); }
+
+/* ── Features ── */
+.features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.feature-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  border-radius: 0;
+  transition: border-color 0.2s;
+}
+
+.feature-card:hover { border-color: var(--border-light); }
+
+.feature-card h3 {
+  font-family: var(--font-code);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* ── Quick Start ── */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.step-number {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-code);
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+}
+
+.step-content h3 {
+  font-family: var(--font-code);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.step-code {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  font-family: var(--font-code);
+  font-size: 0.85rem;
+  border-radius: 0;
+  overflow-x: auto;
+  color: var(--text-secondary);
+}
+
+/* ── Documentation ── */
+.docs-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.docs-overview-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 28px 24px;
+  transition: border-color 0.2s;
+}
+
+.docs-overview-card:hover { border-color: var(--border-light); }
+
+.docs-overview-card h3 {
+  font-family: var(--font-code);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.docs-overview-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.docs-subtitle {
+  font-family: var(--font-code);
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+
+.cmd-ref {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  margin-bottom: 48px;
+}
+
+.cmd-block h4 {
+  font-family: var(--font-code);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.cmd-syntax {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  font-family: var(--font-code);
+  font-size: 0.85rem;
+  overflow-x: auto;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.cmd-desc {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 16px;
+}
+
+.cmd-desc li {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.cmd-desc code {
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+}
+
+.cmd-desc strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.env-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.env-list li {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.env-list code {
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+}
+
+.env-list strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ── Footer ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+footer .footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 12px;
+}
+
+footer a { color: var(--text-secondary); }
+footer a:hover { color: var(--accent); }
+
+/* ── Responsive ── */
+@media (max-width: 1023px) {
+  .hero h1 { font-size: 3.5rem; }
+
+}
+
+@media (max-width: 767px) {
+  .hero { padding: 80px 0 60px; }
+  .hero h1 { font-size: 2.5rem; }
+  .hero .tagline { font-size: 1rem; }
+
+  .features-grid { grid-template-columns: 1fr; }
+  .docs-overview { grid-template-columns: 1fr; }
+  .install-box { font-size: 0.85rem; }
+  section { padding: 60px 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-bg" id="mnemonic-grid"></div>
+  <div class="hero-content container">
+    <h1>bit<span class="accent">cold</span></h1>
+    <p class="tagline">A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.</p>
+    <div class="install-box">
+      <span class="dollar">$</span>
+      <code>npm install -g bitcold</code>
+      <button class="copy-btn" onclick="copyInstall(this)" title="Copy to clipboard">copy</button>
+    </div>
+    <div class="hero-links">
+      <a href="#quickstart">Quick Start</a>
+      <a href="#features">Features</a>
+      <a href="#documentation">Docs</a>
+      <a href="https://github.com/Drincann/cry0">GitHub</a>
+      <a href="https://www.npmjs.com/package/bitcold">npm</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Quick Start ── -->
+<section id="quickstart">
+  <div class="container">
+    <h2 class="section-title"><span class="accent">$</span> Quick Start</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h3>Install</h3>
+          <div class="step-code">$ npm install -g bitcold</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h3>Create a wallet</h3>
+          <div class="step-code">$ bitcold wallet create --alias my-wallet</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h3>Sign a transaction</h3>
+          <div class="step-code">$ bitcold tx sign --from my-wallet@default --to bc1q... --amount 50000 --fee 1500 --utxo &lt;hash:index:value&gt;</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section id="features">
+  <div class="container">
+    <h2 class="section-title"><span class="accent">#</span> Features</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <h3>Offline-first & Encrypted</h3>
+        <p>Generate wallets and sign transactions entirely offline. Wallet data is encrypted locally with AES-256-GCM, keys derived via scrypt.</p>
+      </div>
+      <div class="feature-card">
+        <h3>HD Wallet (BIP84)</h3>
+        <p>Hierarchical deterministic wallets with BIP39 mnemonic phrases and native SegWit (P2WPKH) addresses.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Multi-account</h3>
+        <p>Derive multiple accounts per wallet with custom aliases and independent derivation indices.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Transaction Signing & QR</h3>
+        <p>Construct and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Documentation ── -->
+<section id="documentation">
+  <div class="container">
+    <h2 class="section-title"><span class="accent">#</span> Documentation</h2>
+
+    <!-- Overview -->
+    <div class="docs-overview">
+      <div class="docs-overview-card">
+        <h3>Wallet Management</h3>
+        <p>Create, import, view, rename, and delete wallets. Manage multiple derived accounts per wallet with custom aliases and derivation indices.</p>
+      </div>
+      <div class="docs-overview-card">
+        <h3>Transactions</h3>
+        <p>Sign raw transactions with full UTXO control, export via terminal QR code for air-gapped transfer, and broadcast through configurable providers.</p>
+      </div>
+    </div>
+
+    <!-- Command Reference -->
+    <h3 class="docs-subtitle"><span class="accent">&gt;</span> Command Reference</h3>
+    <div class="cmd-ref">
+
+      <div class="cmd-block">
+        <h4>wallet create</h4>
+        <div class="cmd-syntax">$ bitcold wallet create [options]</div>
+        <ul class="cmd-desc">
+          <li><code>--alias</code> &mdash; wallet name</li>
+          <li><code>--mnemonic</code> &mdash; import an existing BIP39 mnemonic phrase</li>
+          <li><code>--mnemonic-length</code> &mdash; word count (12 | 24, default 12)</li>
+          <li><code>--passphrase</code> &mdash; prompt for encryption passphrase</li>
+          <li><code>--show-mnemonic</code> &mdash; display the mnemonic after creation</li>
+          <li><code>--ephemeral</code> &mdash; generate once, never save to disk</li>
+          <li><code>--entropy-bits</code> &mdash; supply your own binary entropy (dice rolls / coin flips)</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>wallet show &lt;alias&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet show my-wallet [options]</div>
+        <ul class="cmd-desc">
+          <li><code>--private</code> &mdash; reveal private keys</li>
+          <li><code>--mnemonic</code> &mdash; reveal mnemonic phrase</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>wallet list</h4>
+        <div class="cmd-syntax">$ bitcold wallet list</div>
+        <ul class="cmd-desc">
+          <li>List all saved wallets and their accounts.</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>wallet rename &lt;alias&gt; &lt;new-alias&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet rename old-name new-name</div>
+        <ul class="cmd-desc">
+          <li>Rename an existing wallet.</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>wallet remove &lt;alias&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet remove my-wallet [options]</div>
+        <ul class="cmd-desc">
+          <li><code>--yes</code> &mdash; skip confirmation prompt</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>wallet account add &lt;wallet&gt; [account]</h4>
+        <div class="cmd-syntax">$ bitcold wallet account add my-wallet savings [options]</div>
+        <ul class="cmd-desc">
+          <li><code>--index</code> &mdash; BIP44 account index</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>wallet account remove &lt;wallet&gt; &lt;account&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet account remove my-wallet savings [options]</div>
+        <ul class="cmd-desc">
+          <li><code>--yes</code> &mdash; skip confirmation prompt</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>tx sign</h4>
+        <div class="cmd-syntax">$ bitcold tx sign --from wallet@account --to bc1q... --amount 50000 --fee 1500 --utxo &lt;hash:index:value&gt; [options]</div>
+        <ul class="cmd-desc">
+          <li><code>--from</code> &mdash; sender as <strong>wallet@account</strong></li>
+          <li><code>--to</code> &mdash; recipient address</li>
+          <li><code>--amount</code> &mdash; amount in satoshis</li>
+          <li><code>--fee</code> &mdash; fee in satoshis</li>
+          <li><code>--utxo</code> &mdash; UTXO input as <strong>txid:vout:value</strong> (repeatable)</li>
+          <li><code>--broadcast</code> &mdash; broadcast after signing</li>
+          <li><code>--qr</code> &mdash; display signed tx as terminal QR code</li>
+        </ul>
+      </div>
+
+      <div class="cmd-block">
+        <h4>tx broadcast</h4>
+        <div class="cmd-syntax">$ bitcold tx broadcast --tx &lt;raw-hex&gt; [options]</div>
+        <ul class="cmd-desc">
+          <li><code>--tx</code> &mdash; raw signed transaction hex</li>
+          <li><code>--provider</code> &mdash; broadcast API provider</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Configuration -->
+    <h3 class="docs-subtitle"><span class="accent">&gt;</span> Configuration</h3>
+    <ul class="env-list">
+      <li><code>BITCOLD_BITCOIN_NETWORK</code> &mdash; <strong>mainnet</strong> (default) | testnet | regtest</li>
+      <li><code>BITCOLD_PASSPHRASE</code> &mdash; supply passphrase non-interactively (CI / scripting)</li>
+      <li>Storage path: <code>~/.bitcold/</code></li>
+    </ul>
+
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <div class="footer-links">
+      <a href="https://github.com/Drincann/cry0">GitHub</a>
+      <a href="https://www.npmjs.com/package/bitcold">npm</a>
+      <a href="https://github.com/Drincann/cry0/issues">Issues</a>
+    </div>
+    <p>bitcold v0.2.0 &middot; WTFPL License</p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  var words = [
+    'abandon','ability','abstract','anchor','audit','barrel','canyon','casual',
+    'champion','circuit','cluster','coral','crystal','derive','dragon','elbow',
+    'enable','engine','estate','fabric','filter','frozen','genre','govern',
+    'harvest','hockey','infant','ivory','jacket','journey','kayak','label',
+    'length','lunar','magnet','marine','narrow','neutral','ocean','onion',
+    'orbit','palace','patrol','phrase','pilot','pond','private','quantum',
+    'rally','random','recall','region','render','resist','robot','saddle',
+    'satoshi','scheme','secret','seed','shadow','shield','siege','silent',
+    'sketch','solar','spirit','steel','summit','supply','swift','symbol',
+    'table','timber','token','torch','trophy','tunnel','twelve','unveil',
+    'uphold','valley','vendor','verify','vintage','voyage','wallet','wander',
+    'wonder','yellow','zebra'
+  ];
+  var grid = document.getElementById('mnemonic-grid');
+  var w = window.innerWidth;
+  var h = grid.parentElement.offsetHeight;
+  var cols = Math.ceil(w / 100);
+  var rows = Math.ceil(h / 28);
+  for (var r = 0; r < rows; r++) {
+    for (var c = 0; c < cols; c++) {
+      var span = document.createElement('span');
+      span.textContent = words[Math.floor(Math.random() * words.length)];
+      span.style.left = (c * 100 + Math.random() * 20 - 10) + 'px';
+      span.style.top = (r * 28 + Math.random() * 8 - 4) + 'px';
+      span.style.opacity = 0.10 + Math.random() * 0.15;
+      grid.appendChild(span);
+    }
+  }
+})();
+
+function copyInstall(btn) {
+  navigator.clipboard.writeText('npm install -g bitcold').then(function() {
+    btn.textContent = 'copied!';
+    setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+  });
+}
+</script>
+</body>
+</html>
