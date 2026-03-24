@@ -318,6 +318,56 @@ section { padding: 80px 0; }
   font-weight: 500;
 }
 
+/* ── Collapsible Examples ── */
+.cmd-examples {
+  margin-top: 12px;
+}
+
+.cmd-examples summary {
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+  list-style: none;
+}
+
+.cmd-examples summary::before {
+  content: '▸ ';
+  display: inline;
+}
+
+.cmd-examples[open] summary::before {
+  content: '▾ ';
+}
+
+.cmd-examples summary::-webkit-details-marker { display: none; }
+
+.cmd-examples summary:hover { color: var(--accent); }
+
+.cmd-examples .example {
+  margin-top: 8px;
+}
+
+.cmd-examples .example-label {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.cmd-examples .example-code {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  overflow-x: auto;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  white-space: pre;
+}
+
 .env-list {
   list-style: none;
   display: flex;
@@ -486,12 +536,35 @@ footer a:hover { color: var(--accent); }
         <ul class="cmd-desc">
           <li><code>--alias</code> &mdash; wallet name</li>
           <li><code>--mnemonic</code> &mdash; import an existing BIP39 mnemonic phrase</li>
-          <li><code>--mnemonic-length</code> &mdash; word count (12 | 24, default 12)</li>
+          <li><code>--mnemonic-length</code> &mdash; word count (12 | 15 | 18 | 21 | 24, default 12)</li>
           <li><code>--passphrase</code> &mdash; prompt for encryption passphrase</li>
           <li><code>--show-mnemonic</code> &mdash; display the mnemonic after creation</li>
           <li><code>--ephemeral</code> &mdash; generate once, never save to disk</li>
           <li><code>--entropy-bits</code> &mdash; supply your own binary entropy (dice rolls / coin flips)</li>
         </ul>
+        <details class="cmd-examples">
+          <summary>Examples</summary>
+          <div class="example">
+            <div class="example-label">Create a wallet with alias</div>
+            <div class="example-code">$ bitcold wallet create --alias my-wallet</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Import from mnemonic with passphrase</div>
+            <div class="example-code">$ bitcold wallet create --alias imported --mnemonic "word1 word2 word3 ..." --passphrase "my-passphrase"</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Generate 24-word mnemonic and display it</div>
+            <div class="example-code">$ bitcold wallet create --alias secure-wallet --mnemonic-length 24 --show-mnemonic</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Create ephemeral wallet (not saved to disk)</div>
+            <div class="example-code">$ bitcold wallet create --ephemeral</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Create from custom entropy (coin flips / dice rolls)</div>
+            <div class="example-code">$ bitcold wallet create --alias dice-wallet --entropy-bits 10110100...  # 128/256 bits</div>
+          </div>
+        </details>
       </div>
 
       <div class="cmd-block">
@@ -501,6 +574,21 @@ footer a:hover { color: var(--accent); }
           <li><code>--private</code> &mdash; reveal private keys</li>
           <li><code>--mnemonic</code> &mdash; reveal mnemonic phrase</li>
         </ul>
+        <details class="cmd-examples">
+          <summary>Examples</summary>
+          <div class="example">
+            <div class="example-label">Show wallet with private keys</div>
+            <div class="example-code">$ bitcold wallet show my-wallet --private</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Show wallet with mnemonic phrase</div>
+            <div class="example-code">$ bitcold wallet show my-wallet --mnemonic</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Show both private keys and mnemonic</div>
+            <div class="example-code">$ bitcold wallet show my-wallet --private --mnemonic</div>
+          </div>
+        </details>
       </div>
 
       <div class="cmd-block">
@@ -525,6 +613,17 @@ footer a:hover { color: var(--accent); }
         <ul class="cmd-desc">
           <li><code>--yes</code> &mdash; skip confirmation prompt</li>
         </ul>
+        <details class="cmd-examples">
+          <summary>Examples</summary>
+          <div class="example">
+            <div class="example-label">Remove with confirmation prompt</div>
+            <div class="example-code">$ bitcold wallet remove my-wallet</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Skip confirmation</div>
+            <div class="example-code">$ bitcold wallet remove my-wallet --yes</div>
+          </div>
+        </details>
       </div>
 
       <div class="cmd-block">
@@ -533,6 +632,17 @@ footer a:hover { color: var(--accent); }
         <ul class="cmd-desc">
           <li><code>--index</code> &mdash; BIP44 account index</li>
         </ul>
+        <details class="cmd-examples">
+          <summary>Examples</summary>
+          <div class="example">
+            <div class="example-label">Add account with auto-generated alias</div>
+            <div class="example-code">$ bitcold wallet account add my-wallet</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Add with custom alias and derivation index</div>
+            <div class="example-code">$ bitcold wallet account add my-wallet savings --index 5</div>
+          </div>
+        </details>
       </div>
 
       <div class="cmd-block">
@@ -541,6 +651,17 @@ footer a:hover { color: var(--accent); }
         <ul class="cmd-desc">
           <li><code>--yes</code> &mdash; skip confirmation prompt</li>
         </ul>
+        <details class="cmd-examples">
+          <summary>Examples</summary>
+          <div class="example">
+            <div class="example-label">Remove with confirmation</div>
+            <div class="example-code">$ bitcold wallet account remove my-wallet savings</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Skip confirmation</div>
+            <div class="example-code">$ bitcold wallet account remove my-wallet savings --yes</div>
+          </div>
+        </details>
       </div>
 
       <div class="cmd-block">
@@ -548,13 +669,49 @@ footer a:hover { color: var(--accent); }
         <div class="cmd-syntax">$ bitcold tx sign --from wallet@account --to bc1q... --amount 50000 --fee 1500 --utxo &lt;hash:index:value&gt; [options]</div>
         <ul class="cmd-desc">
           <li><code>--from</code> &mdash; sender as <strong>wallet@account</strong></li>
-          <li><code>--to</code> &mdash; recipient address</li>
+          <li><code>--to</code> &mdash; recipient address or <strong>wallet@account</strong> reference</li>
           <li><code>--amount</code> &mdash; amount in satoshis</li>
           <li><code>--fee</code> &mdash; fee in satoshis</li>
           <li><code>--utxo</code> &mdash; UTXO input as <strong>txid:vout:value</strong> (repeatable)</li>
-          <li><code>--broadcast</code> &mdash; broadcast after signing</li>
+          <li><code>--broadcast</code> &mdash; broadcast after signing via provider name (<strong>mempool-mainnet</strong>, <strong>mempool-testnet3</strong>, <strong>mempool-testnet4</strong>) or custom URL</li>
           <li><code>--qr</code> &mdash; display signed tx as terminal QR code</li>
         </ul>
+        <details class="cmd-examples">
+          <summary>Examples</summary>
+          <div class="example">
+            <div class="example-label">Basic transaction signing</div>
+            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
+  --amount 50000 --fee 1500 \
+  --utxo abc123...:0:60000</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Multiple UTXOs</div>
+            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
+  --amount 1500 --fee 500 \
+  --utxo abc123...:0:1000 \
+  --utxo def456...:0:500 \
+  --utxo 789abc...:0:500</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Sign and broadcast directly</div>
+            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
+  --amount 50000 --fee 1500 \
+  --utxo abc123...:0:60000 \
+  --broadcast mempool-mainnet</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Output as QR code for air-gapped transfer</div>
+            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
+  --amount 50000 --fee 1500 \
+  --utxo abc123...:0:60000 --qr</div>
+          </div>
+          <div class="example">
+            <div class="example-label">Send to another local wallet</div>
+            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to other-wallet@savings \
+  --amount 50000 --fee 1500 \
+  --utxo abc123...:0:60000</div>
+          </div>
+        </details>
       </div>
 
       <div class="cmd-block">
@@ -562,7 +719,7 @@ footer a:hover { color: var(--accent); }
         <div class="cmd-syntax">$ bitcold tx broadcast --tx &lt;raw-hex&gt; [options]</div>
         <ul class="cmd-desc">
           <li><code>--tx</code> &mdash; raw signed transaction hex</li>
-          <li><code>--provider</code> &mdash; broadcast API provider</li>
+          <li><code>--provider</code> &mdash; provider name (<strong>mempool-mainnet</strong>, <strong>mempool-testnet3</strong>, <strong>mempool-testnet4</strong>) or custom URL</li>
         </ul>
       </div>
 
@@ -571,7 +728,7 @@ footer a:hover { color: var(--accent); }
     <!-- Configuration -->
     <h3 class="docs-subtitle"><span class="accent">&gt;</span> Configuration</h3>
     <ul class="env-list">
-      <li><code>BITCOLD_BITCOIN_NETWORK</code> &mdash; <strong>mainnet</strong> (default) | testnet | regtest</li>
+      <li><code>BITCOLD_BITCOIN_NETWORK</code> &mdash; <strong>mainnet</strong> or <strong>bitcoin</strong> (default) | testnet | regtest</li>
       <li><code>BITCOLD_PASSPHRASE</code> &mdash; supply passphrase non-interactively (CI / scripting)</li>
       <li>Storage path: <code>~/.bitcold/</code></li>
     </ul>
