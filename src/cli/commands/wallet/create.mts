@@ -1,5 +1,8 @@
 import { Command } from 'commander';
 import { repositories as repos } from '../../../persistence/repository.mjs';
+import { getStorageRoot } from '../../../persistence/storage.mjs';
+import path from 'path';
+import os from 'os';
 import { CliParameterError } from '../../../error/cli-error.mjs';
 import { printer } from '../../output/index.mjs';
 import * as mnemonicUtil from '../../../crypto/mnemonic.mjs'
@@ -56,14 +59,26 @@ export const walletCreateCommand = new Command()
         return;
       }
 
-      printer.info(`Wallet '${wallet.alias}' created!`)
+      const walletFile = path.join(getStorageRoot(), 'wallets.json')
       repos.wallet.save(await wallet.serialize())
+      printer.info(`Wallet '${wallet.alias}' created and saved to ${replaceHomeToTilde(walletFile)} (Encrypted with AES-256-GCM)`)
     } catch (e: unknown) {
       if (e instanceof CliParameterError) {
         printer.error(e.message)
       }
     }
   })
+
+function replaceHomeToTilde(p: string): string {
+  const home = os.homedir()
+  if(p === home) {
+    return '~'
+  }
+  if (p.startsWith(`${home}${path.sep}`)) {
+    return `~${p.slice(home.length)}`
+  }
+  return p
+}
 
 function toBuffer(bits?: string): Buffer | undefined {
   if (bits == undefined) {
