@@ -522,7 +522,7 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="docs-overview-card">
         <h3>Transactions</h3>
-        <p>Sign raw transactions with full UTXO control, export via terminal QR code for air-gapped transfer, and broadcast through configurable providers.</p>
+        <p>Sign raw transactions with full UTXO control and export via terminal QR code for air-gapped transfer.</p>
       </div>
     </div>
 
@@ -673,7 +673,6 @@ footer a:hover { color: var(--accent); }
           <li><code>--amount</code> &mdash; amount in satoshis</li>
           <li><code>--fee</code> &mdash; fee in satoshis</li>
           <li><code>--utxo</code> &mdash; UTXO input as <strong>txid:vout:value</strong> (repeatable)</li>
-          <li><code>--broadcast</code> &mdash; broadcast after signing via provider name (<strong>mempool-mainnet</strong>, <strong>mempool-testnet3</strong>, <strong>mempool-testnet4</strong>) or custom URL</li>
           <li><code>--qr</code> &mdash; display signed tx as terminal QR code</li>
         </ul>
         <details class="cmd-examples">
@@ -693,13 +692,6 @@ footer a:hover { color: var(--accent); }
   --utxo 789abc...:0:500</div>
           </div>
           <div class="example">
-            <div class="example-label">Sign and broadcast directly</div>
-            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
-  --amount 50000 --fee 1500 \
-  --utxo abc123...:0:60000 \
-  --broadcast mempool-mainnet</div>
-          </div>
-          <div class="example">
             <div class="example-label">Output as QR code for air-gapped transfer</div>
             <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
   --amount 50000 --fee 1500 \
@@ -712,15 +704,6 @@ footer a:hover { color: var(--accent); }
   --utxo abc123...:0:60000</div>
           </div>
         </details>
-      </div>
-
-      <div class="cmd-block">
-        <h4>tx broadcast</h4>
-        <div class="cmd-syntax">$ bitcold tx broadcast --tx &lt;raw-hex&gt; [options]</div>
-        <ul class="cmd-desc">
-          <li><code>--tx</code> &mdash; raw signed transaction hex</li>
-          <li><code>--provider</code> &mdash; provider name (<strong>mempool-mainnet</strong>, <strong>mempool-testnet3</strong>, <strong>mempool-testnet4</strong>) or custom URL</li>
-        </ul>
       </div>
 
     </div>

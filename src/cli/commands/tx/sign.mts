@@ -7,7 +7,6 @@ import { repositories as repos } from '../../../persistence/repository.mjs'
 import { Wallet } from '../../../domain/wallet.mjs'
 import { BtcAddress } from '../../../domain/address.mjs'
 import { calcVSizeFromHex, createTransaction } from '../../../domain/transaction.mjs'
-import { createProvider, Provider } from '../../../integration/provider.mjs'
 import { isAddressRef, isNotInt, isNotValidBtcAddressOrRef, isNotValidHex, isNotValidRef } from '../../../utils/validator.mjs'
 
 interface TxSignParameters {
@@ -19,7 +18,6 @@ interface TxSignParameters {
 
   utxo?: string[]
 
-  broadcast: string
 }
 
 interface CheckedTxSignParameters {
@@ -31,10 +29,6 @@ interface CheckedTxSignParameters {
 
   utxos: { hash: string, index: number, value: number }[]
 
-  broadcast?: {
-    name: string
-    provider: Provider
-  }
 }
 
 export const txSignCommand = new Command()
@@ -50,7 +44,6 @@ export const txSignCommand = new Command()
     list.push(value)
     return list
   }, [] as string[])
-  .option('--broadcast <provider-name-or-url>', 'broadcast provider name or url')
   .option('--qr', 'Display signed transaction as QR code in terminal')
   .action(async (_: TxSignParameters, cmd) => {
     try {
@@ -79,10 +72,6 @@ export const txSignCommand = new Command()
         printer.info('\n' + qr)
       }
 
-      if (opts.broadcast) {
-        printer.info('\nBroadcasting transaction to ' + opts.broadcast.name)
-        printer.info(await opts.broadcast.provider.broadcast(signedTx.hex()))
-      }
     } catch (e: unknown) {
       printer.error((e as any)?.message ?? 'unknown error')
     }
@@ -150,11 +139,7 @@ function check(opts: TxSignParameters): CheckedTxSignParameters {
     to: opts.to,
     amount: parseInt(opts.amount),
     fee: parseInt(opts.fee),
-    utxos,
-    broadcast: opts.broadcast ? {
-      name: opts.broadcast,
-      provider: createProvider(opts.broadcast)
-    } : undefined
+    utxos
   }
 }
 

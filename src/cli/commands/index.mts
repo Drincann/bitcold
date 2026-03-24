@@ -7,7 +7,6 @@ import { walletRemoveCommand } from './wallet/remove.mjs';
 import { walletAccountCommand } from './wallet/account.mjs';
 
 import { txSignCommand } from './tx/sign.mjs';
-import { txBroadcastCommand } from './tx/broadcast.mjs';
 
 export const walletCommand = new Command()
   .name('wallet')
@@ -22,7 +21,6 @@ export const walletCommand = new Command()
 
 export const txCommand = new Command()
   .name('tx')
-  .description('Create sign and broadcast transactions')
+  .description('Sign transactions')
 
   .addCommand(txSignCommand)
-  .addCommand(txBroadcastCommand)

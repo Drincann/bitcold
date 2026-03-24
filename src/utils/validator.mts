@@ -116,7 +116,3 @@ export function isValidMnemonicLength(mnemonicLength: number): mnemonicLength is
 export function _in(item: number, list: number[]): boolean {
   return !notIn(item, list)
 }
-
-export function isUrl(url: string): boolean {
-  return /^https?:\/\/.+/.test(url)
-}
