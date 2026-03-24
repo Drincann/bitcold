@@ -38,6 +38,16 @@ body {
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+code {
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 1px 6px;
+  border-radius: 0;
+  white-space: nowrap;
+}
+
 .container {
   max-width: 1100px;
   margin: 0 auto;
@@ -351,6 +361,29 @@ section { padding: 80px 0; }
   font-weight: 500;
 }
 
+.security-note {
+  margin: 16px 0;
+  padding: 12px 16px;
+  background: rgba(74, 222, 128, 0.05);
+  border-left: 3px solid var(--accent);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.security-note .security-note-title {
+  display: block;
+}
+
+.security-note strong {
+  color: var(--accent);
+  font-family: var(--font-code);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline;
+}
+
 /* ── Collapsible Examples ── */
 .cmd-examples {
   margin-top: 12px;
@@ -604,6 +637,10 @@ footer a:hover { color: var(--accent); }
             <div class="example-code">$ bitcold wallet create --alias dice-wallet --entropy-bits 10110100...  # 128/256 bits</div>
           </div>
         </details>
+        <div class="security-note">
+          <strong class="security-note-title" data-i18n="sec-note-t">Note</strong>
+          <span data-i18n="sec-note-d">Your wallet data is stored locally in <code>~/.bitcold/</code> and encrypted using <strong>AES-256-GCM</strong>. The derivation keys are protected via <strong>scrypt</strong>. Never share your passphrase or the files in this directory.</span>
+        </div>
       </div>
 
       <div class="cmd-block">
@@ -752,7 +789,6 @@ footer a:hover { color: var(--accent); }
     <ul class="env-list">
       <li><code>BITCOLD_BITCOIN_NETWORK</code> &mdash; <strong data-i18n="cfg-net-main">mainnet</strong> <span data-i18n="cfg-net-or">or</span> <strong data-i18n="cfg-net-btc">bitcoin</strong> (<span data-i18n="cfg-def">default</span>) | testnet | regtest</li>
       <li><code>BITCOLD_PASSPHRASE</code> &mdash; <span data-i18n="cfg-pass">supply passphrase non-interactively (CI / scripting)</span></li>
-      <li><span data-i18n="cfg-storage">Storage path</span>: <code>~/.bitcold/</code></li>
     </ul>
 
   </div>
@@ -783,7 +819,7 @@ const translations = {
     'qs-create': 'Create a wallet',
     'qs-sign': 'Sign a transaction',
     'f1-t': 'Offline-first & Encrypted',
-    'f1-d': 'Generate wallets and sign transactions entirely offline. Wallet data is encrypted locally with AES-256-GCM, keys derived via scrypt.',
+    'f1-d': 'Generate wallets and sign transactions entirely offline. Wallet data is <strong>encrypted locally in <code>~/.bitcold/</code></strong> with AES-256-GCM.',
     'f2-t': 'HD Wallet (BIP84)',
     'f2-d': 'Hierarchical deterministic wallets with BIP39 mnemonic phrases and native SegWit (P2WPKH) addresses.',
     'f3-t': 'Multi-account',
@@ -795,6 +831,8 @@ const translations = {
     'doc-tx-t': 'Transactions',
     'doc-tx-d': 'Sign raw transactions with full UTXO control and export via terminal QR code for air-gapped transfer.',
     'doc-cr': 'Command Reference',
+    'sec-note-t': 'Note',
+    'sec-note-d': 'Your wallet data is stored locally in <code>~/.bitcold/</code> and encrypted using <strong>AES-256-GCM</strong>. The derivation keys are protected via <strong>scrypt</strong>. Never share your passphrase or the files in this directory.',
     'opt-alias': 'wallet name',
     'opt-mnemonic': 'import an existing BIP39 mnemonic phrase',
     'opt-mlen': 'word count (12 | 15 | 18 | 21 | 24, default 12)',
@@ -853,7 +891,7 @@ const translations = {
     'qs-create': '创建钱包',
     'qs-sign': '签署交易',
     'f1-t': '离线优先 & 加密存储',
-    'f1-d': '完全离线生成钱包和签署交易。钱包数据使用 AES-256-GCM 本地加密，密钥通过 scrypt 派生。',
+    'f1-d': '完全离线生成钱包和签署交易。钱包数据<strong>本地加密存储在 <code>~/.bitcold/</code></strong>，使用 AES-256-GCM，密钥通过 scrypt 派生。',
     'f2-t': '分层确定性钱包 (BIP84)',
     'f2-d': '支持 BIP39 助记词和原生隔离见证 (P2WPKH) 地址的分层确定性钱包。',
     'f3-t': '多账户支持',
@@ -865,6 +903,8 @@ const translations = {
     'doc-tx-t': '交易操作',
     'doc-tx-d': '完全控制 UTXO 签署原始交易，并支持通过终端 QR 码导出，用于物理隔离传输。',
     'doc-cr': '命令参考',
+    'sec-note-t': '提醒',
+    'sec-note-d': '您的钱包数据存储在本地 <code>~/.bitcold/</code>，并使用 <strong>AES-256-GCM</strong> 加密。派生密钥通过 <strong>scrypt</strong> 保护。切勿分享您的密码或此目录中的文件。',
     'opt-alias': '钱包别名',
     'opt-mnemonic': '导入现有的 BIP39 助记词',
     'opt-mlen': '助记词长度 (12 | 15 | 18 | 21 | 24, 默认为 12)',
