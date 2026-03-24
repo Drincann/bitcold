@@ -1,108 +1,27 @@
-# bitcold
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/banner-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/banner-light.svg">
+  <img alt="bitcold" src="docs/banner-dark.svg" width="100%">
+</picture>
 
-bitcold is an open-source, lightweight command-line tool designed for easy management of Bitcoin cold wallets and offline transaction signing.
+> **Full documentation, command reference, and examples at [bitcold.dev](https://bitcold.dev)**
 
-# Installation
+## Install
 
-```fish
+```
 npm install -g bitcold
 ```
 
-# Usage
+## Quick Start
 
-## Wallet
-
-Create a new wallet
-
-```fish
+```bash
+# Create a wallet
 bitcold wallet create --alias my-wallet
+
+# Show wallet details
+bitcold wallet show my-wallet --private --mnemonic
+
+# Sign a transaction
+bitcold tx sign --from my-wallet@default --to bc1q... \
+  --amount 50000 --fee 1500 --utxo <txid:vout:value>
 ```
-
-Import a wallet using mnemonic with passphrase(optional)
-
-```fish
-bitcold wallet create --alias my-wallet --mnemonic "word1 word2 word3 ..." --passphrase "passphrase"
-```
-
-Create a temporary wallet(only display in console)
-
-```fish
-bitcold wallet create --ephemeral
-```
-
-List all wallets
-
-```fish
-bitcold wallet list
-```
-
-Show account details with private key
-
-```fish
-bitcold wallet show my-wallet --private
-```
-
-Rename wallet
-
-```fish
-bitcold wallet rename my-wallet new-wallet
-```
-
-Delete wallet
-
-```fish
-bitcold wallet remove my-wallet
-```
-
-## Account
-
-Add a derived account to a wallet
-
-```fish
-bitcold wallet account add my-wallet
-```
-
-Add with a custom alias and derivation index
-
-```fish
-bitcold wallet account add my-wallet savings --index 5
-```
-
-Remove an account from a wallet
-
-```fish
-bitcold wallet account remove my-wallet savings
-```
-
-## Transaction
-
-Create and sign a transaction:
-
-```fish
-bitcold tx sign --from my-wallet@default --to tb1qamc6hlgvd5e9j8x6dfkl78m6jc3g6xq732hzxk \
-  --amount 1500 --fee 500 \
-  --utxo c5fa5d71deaa6731fb906622ac431b0acd88e26c81272ef26bd8bd35fb3082f2:0:1000 \
-  --utxo 8ab61a6dc59637de8bdd9d04a4b9fd134d3261c77f3c5ae696e26d3538d64241:0:500 \
-  --utxo f58a8230110604ffc28c46ff7a2e616514526f4a436831a9063325f9056e9d4a:0:500
-```
-
-Broadcast a transaction:
-
-```fish
-bitcold tx broadcast --tx <tx-content> --provider mempool-testnet4
-```
-
-Create sign and broadcast with `--broadcast <provider-name-or-url>` directly:
-
-```fish
-bitcold tx sign --from my-wallet@default --to tb1qamc6hlgvd5e9j8x6dfkl78m6jc3g6xq732hzxk \
-  --amount 859 --fee 141 \
-  --utxo c5fa5d71deaa6731fb906622ac431b0acd88e26c81272ef26bd8bd35fb3082f2:0:1000 \
-  --broadcast mempool-testnet4
-```
-
-## Env
-
-- `BITCOLD_PASSPHRASE`: Set the passphrase for the CLI
-- `BITCOLD_BITCOIN_NETWORK`: Set the Bitcoin network: 'mainnet' (or 'bitcoin'), 'regtest', 'testnet'
-- `DEBUG`: Show debug logs if set.
