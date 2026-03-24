@@ -4,6 +4,8 @@
   <img alt="bitcold" src="docs/banner-dark.svg" width="100%">
 </picture>
 
+A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.
+
 > **Full documentation, command reference, and examples at [bitcold.dev](https://bitcold.dev)**
 
 ## Install
