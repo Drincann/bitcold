@@ -156,7 +156,7 @@ export class UserHomeJsonStorage<
   }
 }
 
-export const getStorageRoot = () => {
+const getStorageRoot = () => {
   return path.resolve(getUserHome(), '.bitcold')
 }
 
