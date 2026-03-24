@@ -44,6 +44,39 @@ a:hover { text-decoration: underline; }
   padding: 0 24px;
 }
 
+/* ── Language Switcher ── */
+.lang-switcher {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 100;
+  display: flex;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 4px;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-code);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.lang-btn.active {
+  color: var(--accent);
+  background: var(--bg-elevated);
+}
+
+.lang-btn:hover:not(.active) {
+  color: var(--text);
+}
+
 /* ── Hero ── */
 .hero {
   position: relative;
@@ -428,26 +461,32 @@ footer a:hover { color: var(--accent); }
   .docs-overview { grid-template-columns: 1fr; }
   .install-box { font-size: 0.85rem; }
   section { padding: 60px 0; }
+  .lang-switcher { top: 12px; right: 12px; }
 }
 </style>
 </head>
 <body>
+
+<div class="lang-switcher">
+  <button class="lang-btn" data-lang="en">EN</button>
+  <button class="lang-btn" data-lang="zh">中文</button>
+</div>
 
 <!-- ── Hero ── -->
 <section class="hero">
   <div class="hero-bg" id="mnemonic-grid"></div>
   <div class="hero-content container">
     <h1>bit<span class="accent">cold</span></h1>
-    <p class="tagline">A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.</p>
+    <p class="tagline" data-i18n="hero-tagline">A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.</p>
     <div class="install-box">
       <span class="dollar">$</span>
       <code>npm install -g bitcold</code>
-      <button class="copy-btn" onclick="copyInstall(this)" title="Copy to clipboard">copy</button>
+      <button class="copy-btn" onclick="copyInstall(this)" title="Copy to clipboard" data-i18n="copy">copy</button>
     </div>
     <div class="hero-links">
-      <a href="#quickstart">Quick Start</a>
-      <a href="#features">Features</a>
-      <a href="#documentation">Docs</a>
+      <a href="#quickstart" data-i18n="nav-quickstart">Quick Start</a>
+      <a href="#features" data-i18n="nav-features">Features</a>
+      <a href="#documentation" data-i18n="nav-docs">Docs</a>
       <a href="https://github.com/Drincann/cry0">GitHub</a>
       <a href="https://www.npmjs.com/package/bitcold">npm</a>
     </div>
@@ -457,26 +496,26 @@ footer a:hover { color: var(--accent); }
 <!-- ── Quick Start ── -->
 <section id="quickstart">
   <div class="container">
-    <h2 class="section-title"><span class="accent">$</span> Quick Start</h2>
+    <h2 class="section-title"><span class="accent">$</span> <span data-i18n="nav-quickstart">Quick Start</span></h2>
     <div class="steps">
       <div class="step">
         <div class="step-number">1</div>
         <div class="step-content">
-          <h3>Install</h3>
+          <h3 data-i18n="qs-install">Install</h3>
           <div class="step-code">$ npm install -g bitcold</div>
         </div>
       </div>
       <div class="step">
         <div class="step-number">2</div>
         <div class="step-content">
-          <h3>Create a wallet</h3>
+          <h3 data-i18n="qs-create">Create a wallet</h3>
           <div class="step-code">$ bitcold wallet create --alias my-wallet</div>
         </div>
       </div>
       <div class="step">
         <div class="step-number">3</div>
         <div class="step-content">
-          <h3>Sign a transaction</h3>
+          <h3 data-i18n="qs-sign">Sign a transaction</h3>
           <div class="step-code">$ bitcold tx sign --from my-wallet@default --to bc1q... --amount 50000 --fee 1500 --utxo &lt;hash:index:value&gt;</div>
         </div>
       </div>
@@ -487,23 +526,23 @@ footer a:hover { color: var(--accent); }
 <!-- ── Features ── -->
 <section id="features">
   <div class="container">
-    <h2 class="section-title"><span class="accent">#</span> Features</h2>
+    <h2 class="section-title"><span class="accent">#</span> <span data-i18n="nav-features">Features</span></h2>
     <div class="features-grid">
       <div class="feature-card">
-        <h3>Offline-first & Encrypted</h3>
-        <p>Generate wallets and sign transactions entirely offline. Wallet data is encrypted locally with AES-256-GCM, keys derived via scrypt.</p>
+        <h3 data-i18n="f1-t">Offline-first & Encrypted</h3>
+        <p data-i18n="f1-d">Generate wallets and sign transactions entirely offline. Wallet data is encrypted locally with AES-256-GCM, keys derived via scrypt.</p>
       </div>
       <div class="feature-card">
-        <h3>HD Wallet (BIP84)</h3>
-        <p>Hierarchical deterministic wallets with BIP39 mnemonic phrases and native SegWit (P2WPKH) addresses.</p>
+        <h3 data-i18n="f2-t">HD Wallet (BIP84)</h3>
+        <p data-i18n="f2-d">Hierarchical deterministic wallets with BIP39 mnemonic phrases and native SegWit (P2WPKH) addresses.</p>
       </div>
       <div class="feature-card">
-        <h3>Multi-account</h3>
-        <p>Derive multiple accounts per wallet with custom aliases and independent derivation indices.</p>
+        <h3 data-i18n="f3-t">Multi-account</h3>
+        <p data-i18n="f3-d">Derive multiple accounts per wallet with custom aliases and independent derivation indices.</p>
       </div>
       <div class="feature-card">
-        <h3>Transaction Signing & QR</h3>
-        <p>Construct and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.</p>
+        <h3 data-i18n="f4-t">Transaction Signing & QR</h3>
+        <p data-i18n="f4-d">Construct and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.</p>
       </div>
     </div>
   </div>
@@ -512,56 +551,56 @@ footer a:hover { color: var(--accent); }
 <!-- ── Documentation ── -->
 <section id="documentation">
   <div class="container">
-    <h2 class="section-title"><span class="accent">#</span> Documentation</h2>
+    <h2 class="section-title"><span class="accent">#</span> <span data-i18n="nav-docs">Documentation</span></h2>
 
     <!-- Overview -->
     <div class="docs-overview">
       <div class="docs-overview-card">
-        <h3>Wallet Management</h3>
-        <p>Create, import, view, rename, and delete wallets. Manage multiple derived accounts per wallet with custom aliases and derivation indices.</p>
+        <h3 data-i18n="doc-wm-t">Wallet Management</h3>
+        <p data-i18n="doc-wm-d">Create, import, view, rename, and delete wallets. Manage multiple derived accounts per wallet with custom aliases and derivation indices.</p>
       </div>
       <div class="docs-overview-card">
-        <h3>Transactions</h3>
-        <p>Sign raw transactions with full UTXO control and export via terminal QR code for air-gapped transfer.</p>
+        <h3 data-i18n="doc-tx-t">Transactions</h3>
+        <p data-i18n="doc-tx-d">Sign raw transactions with full UTXO control and export via terminal QR code for air-gapped transfer.</p>
       </div>
     </div>
 
     <!-- Command Reference -->
-    <h3 class="docs-subtitle"><span class="accent">&gt;</span> Command Reference</h3>
+    <h3 class="docs-subtitle"><span class="accent">&gt;</span> <span data-i18n="doc-cr">Command Reference</span></h3>
     <div class="cmd-ref">
 
       <div class="cmd-block">
         <h4>wallet create</h4>
         <div class="cmd-syntax">$ bitcold wallet create [options]</div>
         <ul class="cmd-desc">
-          <li><code>--alias</code> &mdash; wallet name</li>
-          <li><code>--mnemonic</code> &mdash; import an existing BIP39 mnemonic phrase</li>
-          <li><code>--mnemonic-length</code> &mdash; word count (12 | 15 | 18 | 21 | 24, default 12)</li>
-          <li><code>--passphrase</code> &mdash; prompt for encryption passphrase</li>
-          <li><code>--show-mnemonic</code> &mdash; display the mnemonic after creation</li>
-          <li><code>--ephemeral</code> &mdash; generate once, never save to disk</li>
-          <li><code>--entropy-bits</code> &mdash; supply your own binary entropy (dice rolls / coin flips)</li>
+          <li><code>--alias</code> &mdash; <span data-i18n="opt-alias">wallet name</span></li>
+          <li><code>--mnemonic</code> &mdash; <span data-i18n="opt-mnemonic">import an existing BIP39 mnemonic phrase</span></li>
+          <li><code>--mnemonic-length</code> &mdash; <span data-i18n="opt-mlen">word count (12 | 15 | 18 | 21 | 24, default 12)</span></li>
+          <li><code>--passphrase</code> &mdash; <span data-i18n="opt-pass">prompt for encryption passphrase</span></li>
+          <li><code>--show-mnemonic</code> &mdash; <span data-i18n="opt-show-mnemonic">display the mnemonic after creation</span></li>
+          <li><code>--ephemeral</code> &mdash; <span data-i18n="opt-ephemeral">generate once, never save to disk</span></li>
+          <li><code>--entropy-bits</code> &mdash; <span data-i18n="opt-entropy">supply your own binary entropy (dice rolls / coin flips)</span></li>
         </ul>
         <details class="cmd-examples">
-          <summary>Examples</summary>
+          <summary data-i18n="examples">Examples</summary>
           <div class="example">
-            <div class="example-label">Create a wallet with alias</div>
+            <div class="example-label" data-i18n="ex-create-alias">Create a wallet with alias</div>
             <div class="example-code">$ bitcold wallet create --alias my-wallet</div>
           </div>
           <div class="example">
-            <div class="example-label">Import from mnemonic with passphrase</div>
+            <div class="example-label" data-i18n="ex-import-pass">Import from mnemonic with passphrase</div>
             <div class="example-code">$ bitcold wallet create --alias imported --mnemonic "word1 word2 word3 ..." --passphrase "my-passphrase"</div>
           </div>
           <div class="example">
-            <div class="example-label">Generate 24-word mnemonic and display it</div>
+            <div class="example-label" data-i18n="ex-gen-24">Generate 24-word mnemonic and display it</div>
             <div class="example-code">$ bitcold wallet create --alias secure-wallet --mnemonic-length 24 --show-mnemonic</div>
           </div>
           <div class="example">
-            <div class="example-label">Create ephemeral wallet (not saved to disk)</div>
+            <div class="example-label" data-i18n="ex-ephemeral">Create ephemeral wallet (not saved to disk)</div>
             <div class="example-code">$ bitcold wallet create --ephemeral</div>
           </div>
           <div class="example">
-            <div class="example-label">Create from custom entropy (coin flips / dice rolls)</div>
+            <div class="example-label" data-i18n="ex-entropy">Create from custom entropy (coin flips / dice rolls)</div>
             <div class="example-code">$ bitcold wallet create --alias dice-wallet --entropy-bits 10110100...  # 128/256 bits</div>
           </div>
         </details>
@@ -571,21 +610,21 @@ footer a:hover { color: var(--accent); }
         <h4>wallet show &lt;alias&gt;</h4>
         <div class="cmd-syntax">$ bitcold wallet show my-wallet [options]</div>
         <ul class="cmd-desc">
-          <li><code>--private</code> &mdash; reveal private keys</li>
-          <li><code>--mnemonic</code> &mdash; reveal mnemonic phrase</li>
+          <li><code>--private</code> &mdash; <span data-i18n="opt-private">reveal private keys</span></li>
+          <li><code>--mnemonic</code> &mdash; <span data-i18n="opt-reveal-mnemonic">reveal mnemonic phrase</span></li>
         </ul>
         <details class="cmd-examples">
-          <summary>Examples</summary>
+          <summary data-i18n="examples">Examples</summary>
           <div class="example">
-            <div class="example-label">Show wallet with private keys</div>
+            <div class="example-label" data-i18n="ex-show-priv">Show wallet with private keys</div>
             <div class="example-code">$ bitcold wallet show my-wallet --private</div>
           </div>
           <div class="example">
-            <div class="example-label">Show wallet with mnemonic phrase</div>
+            <div class="example-label" data-i18n="ex-show-mnemonic">Show wallet with mnemonic phrase</div>
             <div class="example-code">$ bitcold wallet show my-wallet --mnemonic</div>
           </div>
           <div class="example">
-            <div class="example-label">Show both private keys and mnemonic</div>
+            <div class="example-label" data-i18n="ex-show-both">Show both private keys and mnemonic</div>
             <div class="example-code">$ bitcold wallet show my-wallet --private --mnemonic</div>
           </div>
         </details>
@@ -595,7 +634,7 @@ footer a:hover { color: var(--accent); }
         <h4>wallet list</h4>
         <div class="cmd-syntax">$ bitcold wallet list</div>
         <ul class="cmd-desc">
-          <li>List all saved wallets and their accounts.</li>
+          <li data-i18n="cmd-list-d">List all saved wallets and their accounts.</li>
         </ul>
       </div>
 
@@ -603,7 +642,7 @@ footer a:hover { color: var(--accent); }
         <h4>wallet rename &lt;alias&gt; &lt;new-alias&gt;</h4>
         <div class="cmd-syntax">$ bitcold wallet rename old-name new-name</div>
         <ul class="cmd-desc">
-          <li>Rename an existing wallet.</li>
+          <li data-i18n="cmd-rename-d">Rename an existing wallet.</li>
         </ul>
       </div>
 
@@ -611,16 +650,16 @@ footer a:hover { color: var(--accent); }
         <h4>wallet remove &lt;alias&gt;</h4>
         <div class="cmd-syntax">$ bitcold wallet remove my-wallet [options]</div>
         <ul class="cmd-desc">
-          <li><code>--yes</code> &mdash; skip confirmation prompt</li>
+          <li><code>--yes</code> &mdash; <span data-i18n="opt-yes">skip confirmation prompt</span></li>
         </ul>
         <details class="cmd-examples">
-          <summary>Examples</summary>
+          <summary data-i18n="examples">Examples</summary>
           <div class="example">
-            <div class="example-label">Remove with confirmation prompt</div>
+            <div class="example-label" data-i18n="ex-remove-conf">Remove with confirmation prompt</div>
             <div class="example-code">$ bitcold wallet remove my-wallet</div>
           </div>
           <div class="example">
-            <div class="example-label">Skip confirmation</div>
+            <div class="example-label" data-i18n="ex-remove-yes">Skip confirmation</div>
             <div class="example-code">$ bitcold wallet remove my-wallet --yes</div>
           </div>
         </details>
@@ -630,16 +669,16 @@ footer a:hover { color: var(--accent); }
         <h4>wallet account add &lt;wallet&gt; [account]</h4>
         <div class="cmd-syntax">$ bitcold wallet account add my-wallet savings [options]</div>
         <ul class="cmd-desc">
-          <li><code>--index</code> &mdash; BIP44 account index</li>
+          <li><code>--index</code> &mdash; <span data-i18n="opt-index">BIP44 account index</span></li>
         </ul>
         <details class="cmd-examples">
-          <summary>Examples</summary>
+          <summary data-i18n="examples">Examples</summary>
           <div class="example">
-            <div class="example-label">Add account with auto-generated alias</div>
+            <div class="example-label" data-i18n="ex-acc-auto">Add account with auto-generated alias</div>
             <div class="example-code">$ bitcold wallet account add my-wallet</div>
           </div>
           <div class="example">
-            <div class="example-label">Add with custom alias and derivation index</div>
+            <div class="example-label" data-i18n="ex-acc-custom">Add with custom alias and derivation index</div>
             <div class="example-code">$ bitcold wallet account add my-wallet savings --index 5</div>
           </div>
         </details>
@@ -649,16 +688,16 @@ footer a:hover { color: var(--accent); }
         <h4>wallet account remove &lt;wallet&gt; &lt;account&gt;</h4>
         <div class="cmd-syntax">$ bitcold wallet account remove my-wallet savings [options]</div>
         <ul class="cmd-desc">
-          <li><code>--yes</code> &mdash; skip confirmation prompt</li>
+          <li><code>--yes</code> &mdash; <span data-i18n="opt-yes">skip confirmation prompt</span></li>
         </ul>
         <details class="cmd-examples">
-          <summary>Examples</summary>
+          <summary data-i18n="examples">Examples</summary>
           <div class="example">
-            <div class="example-label">Remove with confirmation</div>
+            <div class="example-label" data-i18n="ex-acc-rem-conf">Remove with confirmation</div>
             <div class="example-code">$ bitcold wallet account remove my-wallet savings</div>
           </div>
           <div class="example">
-            <div class="example-label">Skip confirmation</div>
+            <div class="example-label" data-i18n="ex-acc-rem-yes">Skip confirmation</div>
             <div class="example-code">$ bitcold wallet account remove my-wallet savings --yes</div>
           </div>
         </details>
@@ -668,23 +707,23 @@ footer a:hover { color: var(--accent); }
         <h4>tx sign</h4>
         <div class="cmd-syntax">$ bitcold tx sign --from wallet@account --to bc1q... --amount 50000 --fee 1500 --utxo &lt;hash:index:value&gt; [options]</div>
         <ul class="cmd-desc">
-          <li><code>--from</code> &mdash; sender as <strong>wallet@account</strong></li>
-          <li><code>--to</code> &mdash; recipient address or <strong>wallet@account</strong> reference</li>
-          <li><code>--amount</code> &mdash; amount in satoshis</li>
-          <li><code>--fee</code> &mdash; fee in satoshis</li>
-          <li><code>--utxo</code> &mdash; UTXO input as <strong>txid:vout:value</strong> (repeatable)</li>
-          <li><code>--qr</code> &mdash; display signed tx as terminal QR code</li>
+          <li><code>--from</code> &mdash; <span data-i18n="opt-from">sender as <strong>wallet@account</strong></span></li>
+          <li><code>--to</code> &mdash; <span data-i18n="opt-to">recipient address or <strong>wallet@account</strong> reference</span></li>
+          <li><code>--amount</code> &mdash; <span data-i18n="opt-amount">amount in satoshis</span></li>
+          <li><code>--fee</code> &mdash; <span data-i18n="opt-fee">fee in satoshis</span></li>
+          <li><code>--utxo</code> &mdash; <span data-i18n="opt-utxo">UTXO input as <strong>txid:vout:value</strong> (repeatable)</span></li>
+          <li><code>--qr</code> &mdash; <span data-i18n="opt-qr">display signed tx as terminal QR code</span></li>
         </ul>
         <details class="cmd-examples">
-          <summary>Examples</summary>
+          <summary data-i18n="examples">Examples</summary>
           <div class="example">
-            <div class="example-label">Basic transaction signing</div>
+            <div class="example-label" data-i18n="ex-tx-basic">Basic transaction signing</div>
             <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
   --amount 50000 --fee 1500 \
   --utxo abc123...:0:60000</div>
           </div>
           <div class="example">
-            <div class="example-label">Multiple UTXOs</div>
+            <div class="example-label" data-i18n="ex-tx-multi">Multiple UTXOs</div>
             <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
   --amount 1500 --fee 500 \
   --utxo abc123...:0:1000 \
@@ -692,13 +731,13 @@ footer a:hover { color: var(--accent); }
   --utxo 789abc...:0:500</div>
           </div>
           <div class="example">
-            <div class="example-label">Output as QR code for air-gapped transfer</div>
+            <div class="example-label" data-i18n="ex-tx-qr">Output as QR code for air-gapped transfer</div>
             <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
   --amount 50000 --fee 1500 \
   --utxo abc123...:0:60000 --qr</div>
           </div>
           <div class="example">
-            <div class="example-label">Send to another local wallet</div>
+            <div class="example-label" data-i18n="ex-tx-local">Send to another local wallet</div>
             <div class="example-code">$ bitcold tx sign --from my-wallet@default --to other-wallet@savings \
   --amount 50000 --fee 1500 \
   --utxo abc123...:0:60000</div>
@@ -709,11 +748,11 @@ footer a:hover { color: var(--accent); }
     </div>
 
     <!-- Configuration -->
-    <h3 class="docs-subtitle"><span class="accent">&gt;</span> Configuration</h3>
+    <h3 class="docs-subtitle"><span class="accent">&gt;</span> <span data-i18n="doc-config">Configuration</span></h3>
     <ul class="env-list">
-      <li><code>BITCOLD_BITCOIN_NETWORK</code> &mdash; <strong>mainnet</strong> or <strong>bitcoin</strong> (default) | testnet | regtest</li>
-      <li><code>BITCOLD_PASSPHRASE</code> &mdash; supply passphrase non-interactively (CI / scripting)</li>
-      <li>Storage path: <code>~/.bitcold/</code></li>
+      <li><code>BITCOLD_BITCOIN_NETWORK</code> &mdash; <strong data-i18n="cfg-net-main">mainnet</strong> <span data-i18n="cfg-net-or">or</span> <strong data-i18n="cfg-net-btc">bitcoin</strong> (<span data-i18n="cfg-def">default</span>) | testnet | regtest</li>
+      <li><code>BITCOLD_PASSPHRASE</code> &mdash; <span data-i18n="cfg-pass">supply passphrase non-interactively (CI / scripting)</span></li>
+      <li><span data-i18n="cfg-storage">Storage path</span>: <code>~/.bitcold/</code></li>
     </ul>
 
   </div>
@@ -727,11 +766,183 @@ footer a:hover { color: var(--accent); }
       <a href="https://www.npmjs.com/package/bitcold">npm</a>
       <a href="https://github.com/Drincann/cry0/issues">Issues</a>
     </div>
-    <p>bitcold v0.2.0 &middot; WTFPL License</p>
+    <p>bitcold v0.2.0 &middot; <span data-i18n="license">WTFPL License</span></p>
   </div>
 </footer>
 
 <script>
+const translations = {
+  'en': {
+    'hero-tagline': 'A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.',
+    'copy': 'copy',
+    'copied': 'copied!',
+    'nav-quickstart': 'Quick Start',
+    'nav-features': 'Features',
+    'nav-docs': 'Docs',
+    'qs-install': 'Install',
+    'qs-create': 'Create a wallet',
+    'qs-sign': 'Sign a transaction',
+    'f1-t': 'Offline-first & Encrypted',
+    'f1-d': 'Generate wallets and sign transactions entirely offline. Wallet data is encrypted locally with AES-256-GCM, keys derived via scrypt.',
+    'f2-t': 'HD Wallet (BIP84)',
+    'f2-d': 'Hierarchical deterministic wallets with BIP39 mnemonic phrases and native SegWit (P2WPKH) addresses.',
+    'f3-t': 'Multi-account',
+    'f3-d': 'Derive multiple accounts per wallet with custom aliases and independent derivation indices.',
+    'f4-t': 'Transaction Signing & QR',
+    'f4-d': 'Construct and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.',
+    'doc-wm-t': 'Wallet Management',
+    'doc-wm-d': 'Create, import, view, rename, and delete wallets. Manage multiple derived accounts per wallet with custom aliases and derivation indices.',
+    'doc-tx-t': 'Transactions',
+    'doc-tx-d': 'Sign raw transactions with full UTXO control and export via terminal QR code for air-gapped transfer.',
+    'doc-cr': 'Command Reference',
+    'opt-alias': 'wallet name',
+    'opt-mnemonic': 'import an existing BIP39 mnemonic phrase',
+    'opt-mlen': 'word count (12 | 15 | 18 | 21 | 24, default 12)',
+    'opt-pass': 'prompt for encryption passphrase',
+    'opt-show-mnemonic': 'display the mnemonic after creation',
+    'opt-ephemeral': 'generate once, never save to disk',
+    'opt-entropy': 'supply your own binary entropy (dice rolls / coin flips)',
+    'examples': 'Examples',
+    'ex-create-alias': 'Create a wallet with alias',
+    'ex-import-pass': 'Import from mnemonic with passphrase',
+    'ex-gen-24': 'Generate 24-word mnemonic and display it',
+    'ex-ephemeral': 'Create ephemeral wallet (not saved to disk)',
+    'ex-entropy': 'Create from custom entropy (coin flips / dice rolls)',
+    'opt-private': 'reveal private keys',
+    'opt-reveal-mnemonic': 'reveal mnemonic phrase',
+    'ex-show-priv': 'Show wallet with private keys',
+    'ex-show-mnemonic': 'Show wallet with mnemonic phrase',
+    'ex-show-both': 'Show both private keys and mnemonic',
+    'cmd-list-d': 'List all saved wallets and their accounts.',
+    'cmd-rename-d': 'Rename an existing wallet.',
+    'opt-yes': 'skip confirmation prompt',
+    'ex-remove-conf': 'Remove with confirmation prompt',
+    'ex-remove-yes': 'Skip confirmation',
+    'opt-index': 'BIP44 account index',
+    'ex-acc-auto': 'Add account with auto-generated alias',
+    'ex-acc-custom': 'Add with custom alias and derivation index',
+    'ex-acc-rem-conf': 'Remove with confirmation',
+    'ex-acc-rem-yes': 'Skip confirmation',
+    'opt-from': 'sender as <strong>wallet@account</strong>',
+    'opt-to': 'recipient address or <strong>wallet@account</strong> reference',
+    'opt-amount': 'amount in satoshis',
+    'opt-fee': 'fee in satoshis',
+    'opt-utxo': 'UTXO input as <strong>txid:vout:value</strong> (repeatable)',
+    'opt-qr': 'display signed tx as terminal QR code',
+    'ex-tx-basic': 'Basic transaction signing',
+    'ex-tx-multi': 'Multiple UTXOs',
+    'ex-tx-qr': 'Output as QR code for air-gapped transfer',
+    'ex-tx-local': 'Send to another local wallet',
+    'doc-config': 'Configuration',
+    'cfg-net-main': 'mainnet',
+    'cfg-net-or': 'or',
+    'cfg-net-btc': 'bitcoin',
+    'cfg-def': 'default',
+    'cfg-pass': 'supply passphrase non-interactively (CI / scripting)',
+    'cfg-storage': 'Storage path',
+    'license': 'WTFPL License'
+  },
+  'zh': {
+    'hero-tagline': '一个轻量级的命令行工具，用于生成比特币冷钱包、管理密钥以及离线签署交易。',
+    'copy': '复制',
+    'copied': '已复制!',
+    'nav-quickstart': '快速开始',
+    'nav-features': '功能特性',
+    'nav-docs': '文档说明',
+    'qs-install': '安装',
+    'qs-create': '创建钱包',
+    'qs-sign': '签署交易',
+    'f1-t': '离线优先 & 加密存储',
+    'f1-d': '完全离线生成钱包和签署交易。钱包数据使用 AES-256-GCM 本地加密，密钥通过 scrypt 派生。',
+    'f2-t': '分层确定性钱包 (BIP84)',
+    'f2-d': '支持 BIP39 助记词和原生隔离见证 (P2WPKH) 地址的分层确定性钱包。',
+    'f3-t': '多账户支持',
+    'f3-d': '每个钱包可以派生多个账户，支持自定义别名和独立的派生索引。',
+    'f4-t': '交易签署 & QR 码',
+    'f4-d': '构造并签署原始比特币交易，完全控制 UTXO。支持将签署后的交易导出为终端 QR 码，实现物理隔离传输。',
+    'doc-wm-t': '钱包管理',
+    'doc-wm-d': '创建、导入、查看、重命名和删除钱包。管理每个钱包下派生的多个账户，支持自定义别名和派生索引。',
+    'doc-tx-t': '交易操作',
+    'doc-tx-d': '完全控制 UTXO 签署原始交易，并支持通过终端 QR 码导出，用于物理隔离传输。',
+    'doc-cr': '命令参考',
+    'opt-alias': '钱包别名',
+    'opt-mnemonic': '导入现有的 BIP39 助记词',
+    'opt-mlen': '助记词长度 (12 | 15 | 18 | 21 | 24, 默认为 12)',
+    'opt-pass': '提示输入加密密码',
+    'opt-show-mnemonic': '创建后显示助记词',
+    'opt-ephemeral': '一次性生成，不保存到磁盘',
+    'opt-entropy': '提供自定义二进制熵（掷骰子 / 抛硬币）',
+    'examples': '示例',
+    'ex-create-alias': '使用别名创建钱包',
+    'ex-import-pass': '使用助记词和密码导入',
+    'ex-gen-24': '生成 24 位助记词并显示',
+    'ex-ephemeral': '创建临时钱包（不保存）',
+    'ex-entropy': '从自定义熵创建（掷骰子 / 抛硬币）',
+    'opt-private': '显示私钥',
+    'opt-reveal-mnemonic': '显示助记词',
+    'ex-show-priv': '显示带有私钥的钱包',
+    'ex-show-mnemonic': '显示带有助记词的钱包',
+    'ex-show-both': '同时显示私钥和助记词',
+    'cmd-list-d': '列出所有保存的钱包及其账户。',
+    'cmd-rename-d': '重命名现有钱包。',
+    'opt-yes': '跳过确认提示',
+    'ex-remove-conf': '带确认提示的删除',
+    'ex-remove-yes': '跳过确认删除',
+    'opt-index': 'BIP44 账户索引',
+    'ex-acc-auto': '添加自动生成别名的账户',
+    'ex-acc-custom': '添加自定义别名和派生索引的账户',
+    'ex-acc-rem-conf': '带确认的账户删除',
+    'ex-acc-rem-yes': '跳过确认删除账户',
+    'opt-from': '发送者，格式为 <strong>wallet@account</strong>',
+    'opt-to': '接收者地址或 <strong>wallet@account</strong> 引用',
+    'opt-amount': '金额（单位：聪）',
+    'opt-fee': '手续费（单位：聪）',
+    'opt-utxo': 'UTXO 输入，格式为 <strong>txid:vout:value</strong> (可重复)',
+    'opt-qr': '在终端显示签署后交易的 QR 码',
+    'ex-tx-basic': '基础交易签署',
+    'ex-tx-multi': '多个 UTXO 签署',
+    'ex-tx-qr': '导出为 QR 码用于物理隔离传输',
+    'ex-tx-local': '发送到另一个本地钱包',
+    'doc-config': '配置参数',
+    'cfg-net-main': 'mainnet',
+    'cfg-net-or': '或',
+    'cfg-net-btc': 'bitcoin',
+    'cfg-def': '默认',
+    'cfg-pass': '非交互式提供密码 (CI / 脚本)',
+    'cfg-storage': '存储路径',
+    'license': 'WTFPL 许可证'
+  }
+};
+
+let currentLang = localStorage.getItem('bitcold-lang') || 'en';
+
+function updateLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('bitcold-lang', lang);
+  
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[lang][key]) {
+      el.innerHTML = translations[lang][key];
+    }
+  });
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+  });
+  
+  document.documentElement.lang = lang;
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    updateLanguage(btn.getAttribute('data-lang'));
+  });
+});
+
+// Initialize language
+updateLanguage(currentLang);
+
 (function() {
   var words = [
     'abandon','ability','abstract','anchor','audit','barrel','canyon','casual',
@@ -766,8 +977,10 @@ footer a:hover { color: var(--accent); }
 
 function copyInstall(btn) {
   navigator.clipboard.writeText('npm install -g bitcold').then(function() {
-    btn.textContent = 'copied!';
-    setTimeout(function() { btn.textContent = 'copy'; }, 1500);
+    const original = translations[currentLang]['copy'];
+    const success = translations[currentLang]['copied'];
+    btn.textContent = success;
+    setTimeout(function() { btn.textContent = original; }, 1500);
   });
 }
 </script>
