@@ -81,7 +81,7 @@ export class EncryptedUserHomeJsonStorage<
       throw new CliInternalError('Passphrase is required')
     }
 
-    fs.writeFile(file, JSON.stringify(await aesEncrypt(JSON.stringify(data), this.passphrase)))
+    await fs.writeFile(file, JSON.stringify(await aesEncrypt(JSON.stringify(data), this.passphrase)))
   }
 
   public async load<K extends Keys>(key: K): Promise<DataTypes[K]> {
@@ -144,7 +144,7 @@ export class UserHomeJsonStorage<
     await createIfNotExists(storageRoot)
     const file = path.join(storageRoot, `${key}.json`)
 
-    fs.writeFile(file, JSON.stringify(data))
+    await fs.writeFile(file, JSON.stringify(data))
   }
 
   public async load<K extends Keys>(key: K): Promise<DataTypes[K]> {

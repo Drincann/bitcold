@@ -1,9 +1,12 @@
 import { Network, networks } from "bitcoinjs-lib";
-import { hexSha256 } from "../crypto/hash.mjs";
-import { repositories } from "../persistence/repository.mjs";
+import {
+  checkWalletsFileIsEncrypted,
+  checkWalletsFileExists,
+  repositories,
+} from "../persistence/repository.mjs";
 import { CliParameterError } from "../error/cli-error.mjs";
 import prompts from "prompts";
-import { checkHash, isNotString } from "../utils/validator.mjs";
+import { isNotString } from "../utils/validator.mjs";
 
 const netMappings = {
   'testnet': networks.testnet,
@@ -37,22 +40,33 @@ function emptyToUndefined(value: string | undefined): string | undefined {
 
 export async function ensureCliLevelSecretInitialized() {
   let cliPassphrase = emptyToUndefined(process.env.BITCOLD_PASSPHRASE)
-  const secretSha256 = await repositories.secret.get()
-  if (secretSha256 === undefined) {
+
+  if (!(await checkWalletsFileExists())) {
     if (cliPassphrase === undefined) {
       cliPassphrase = await questionUserToCreateCliPassphrase(cliPassphrase);
     }
 
-    await repositories.secret.set(await hexSha256(cliPassphrase!))
+    await repositories.init(cliPassphrase!)
+    await repositories.wallet.setAllWallets([])
+    return
+  }
+
+  if (!(await checkWalletsFileIsEncrypted())) {
+    throw new CliParameterError(
+      'wallets.json is not a valid encrypted wallet store. repair the file or restore from backup.'
+    )
   }
 
   if (cliPassphrase === undefined) {
     cliPassphrase = await questionCliPassphrase(cliPassphrase);
   }
 
-  await checkHash(await repositories.secret.get(), cliPassphrase);
-
-  await repositories.init(cliPassphrase)
+  await repositories.init(cliPassphrase!)
+  try {
+    await repositories.wallet.getAllWallets()
+  } catch {
+    throw new CliParameterError('CLI passphrase is incorrect')
+  }
 }
 
 async function questionUserToCreateCliPassphrase(cliPassphrase: string | undefined) {

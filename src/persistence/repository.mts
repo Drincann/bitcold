@@ -1,7 +1,34 @@
-import { EncryptedUserHomeJsonStorage, Storage, UserHomeJsonStorage } from "./storage.mjs"
+import fs from 'fs/promises'
+import path from 'path'
+import { isEnvelopeV1 } from '../crypto/aes.mjs'
+import { CliInternalError, CliParameterError } from '../error/cli-error.mjs'
+import { EncryptedUserHomeJsonStorage, Storage, getStorageRoot } from "./storage.mjs"
 import type { Collections, StoredWalletData } from "../domain/types.mjs"
 
 let storage: Storage<Collections> = new EncryptedUserHomeJsonStorage('');
+
+export async function checkWalletsFileExists(): Promise<boolean> {
+  try {
+    await fs.access(path.join(getStorageRoot(), 'wallets.json'))
+    return true
+  } catch (err) {
+    throw new CliInternalError('Could not access wallets.json (permissions or filesystem error).', err)
+  }
+}
+
+export async function checkWalletsFileIsEncrypted(): Promise<boolean> {
+  try {
+    const filePath = path.join(getStorageRoot(), 'wallets.json')
+    let text: string = await fs.readFile(filePath, 'utf-8')
+    let o = JSON.parse(text)
+    return isEnvelopeV1(o)
+  } catch (err) {
+    throw new CliParameterError(
+      'wallets.json is not valid encrypted wallet store. repair the file or restore from backup.',
+      err
+    )
+  }
+}
 
 class WalletRepository {
   public async getAllWallets(): Promise<StoredWalletData[]> {
@@ -10,6 +37,10 @@ class WalletRepository {
 
   public async getWallet(alias: string): Promise<StoredWalletData | undefined> {
     return (await this.getAllWallets()).find(wallet => wallet.alias === alias)
+  }
+
+  public async setAllWallets(wallets: StoredWalletData[]): Promise<void> {
+    await storage.save('wallets', wallets)
   }
 
   public async save(wallet: StoredWalletData): Promise<void> {
@@ -28,11 +59,11 @@ class WalletRepository {
   }
 
   public async remove(walletAlias: string) {
-    storage.save('wallets', (await storage.load('wallets')).filter(wallet => wallet.alias !== walletAlias))
+    await storage.save('wallets', (await storage.load('wallets')).filter(wallet => wallet.alias !== walletAlias))
   }
 
   public async rename(fromWallet: any, toWallet: any) {
-    storage.save('wallets', (await storage.load('wallets')).map(wallet => {
+    await storage.save('wallets', (await storage.load('wallets')).map(wallet => {
       if (wallet.alias === fromWallet) {
         wallet.alias = toWallet
       }
@@ -41,23 +72,9 @@ class WalletRepository {
   }
 }
 
-class SecretHashRepository {
-  private storage = new UserHomeJsonStorage<{ secret: { hash: string } }>();
-
-  public async set(hash: string) {
-    await this.storage.save('secret', { hash })
-  }
-
-  public async get(): Promise<string | undefined> {
-    return (await this.storage.load('secret'))?.hash
-  }
-}
-
 const walletRepo = new WalletRepository()
-const secretRepo = new SecretHashRepository()
 export const repositories = {
   wallet: walletRepo,
-  secret: secretRepo,
   init: async (passphrase: string) => {
     storage = new EncryptedUserHomeJsonStorage(passphrase)
   }
