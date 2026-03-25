@@ -2,9 +2,6 @@ import { Command } from 'commander';
 import { Wallet } from '../../../domain/wallet.mjs';
 import { repositories as repos } from '../../../persistence/repository.mjs';
 import { printer } from '../../output/index.mjs';
-import prompts from 'prompts'
-import { WalletData, StoredWalletData } from '../../../domain/types.mjs';
-import { hexSha256 } from '../../../crypto/hash.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { CliError } from '../../../error/cli-error.mjs';
 import { BTC_DERIVATION_PATH_PREFIX } from '../../../crypto/mnemonic.mjs';
