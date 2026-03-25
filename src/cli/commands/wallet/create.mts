@@ -23,7 +23,7 @@ export const walletCreateCommand = new Command()
   .name('create')
   .description('Create a new wallet')
 
-  .option('-a --alias <wallet-alias>', 'Alias for the wallet')
+  .argument('[wallet-alias]', 'Alias for the wallet')
   .option('-m --mnemonic <mneomonic> ', 'Create a wallet from a mnemonic')
   .option<number>('-l --mnemonic-length <length> ', 'Length of the mnemonic you want to generate', length => parseInt(length), 12)
   .option('-p --passphrase <passphrase>', 'Passphrase for the mnemonic')
@@ -31,7 +31,10 @@ export const walletCreateCommand = new Command()
   .option('-e --ephemeral', 'Do not save the wallet, only display in console', false)
   .option('-b --entropy-bits <bits>', 'Entropy bits for the wallet, receive 128, 160, 192, 224, 256 bits')
 
-  .action(async (opts: WalletCreateParams) => {
+  .action(async (alias: string | undefined, opts: WalletCreateParams) => {
+    if (alias) {
+      opts.alias = alias
+    }
     try {
       await ensureCliLevelSecretInitialized()
       fix(opts)
