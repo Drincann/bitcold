@@ -8,6 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
 <style>
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -530,6 +533,19 @@ footer a:hover { color: var(--accent); }
 <section id="quickstart">
   <div class="container">
     <h2 class="section-title"><span class="accent">$</span> <span data-i18n="nav-quickstart">Quick Start</span></h2>
+
+    <div id="playground" style="margin-bottom: 40px;">
+      <div style="background: var(--bg-surface); border: 1px solid var(--border); padding: 4px; display: flex; flex-direction: column; height: 350px;">
+        <div style="display: flex; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); align-items: center;">
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></div>
+          <div style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></div>
+          <span style="font-family: var(--font-code); font-size: 0.8rem; color: var(--text-dim); margin-left: 8px;">terminal</span>
+        </div>
+        <div id="terminal" style="flex: 1; padding: 12px; overflow: hidden; pointer-events: none;"></div>
+      </div>
+    </div>
+
     <div class="steps">
       <div class="step">
         <div class="step-number">1</div>
@@ -542,7 +558,7 @@ footer a:hover { color: var(--accent); }
         <div class="step-number">2</div>
         <div class="step-content">
           <h3 data-i18n="qs-create">Create a wallet</h3>
-          <div class="step-code">$ bitcold wallet create --alias my-wallet</div>
+          <div class="step-code">$ bitcold wallet create my-wallet</div>
         </div>
       </div>
       <div class="step">
@@ -553,6 +569,7 @@ footer a:hover { color: var(--accent); }
         </div>
       </div>
     </div>
+
   </div>
 </section>
 
@@ -603,10 +620,9 @@ footer a:hover { color: var(--accent); }
     <div class="cmd-ref">
 
       <div class="cmd-block">
-        <h4>wallet create</h4>
-        <div class="cmd-syntax">$ bitcold wallet create [options]</div>
+        <h4>wallet create &lt;alias&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet create [wallet-alias] [options]</div>
         <ul class="cmd-desc">
-          <li><code>--alias</code> &mdash; <span data-i18n="opt-alias">wallet name</span></li>
           <li><code>--mnemonic</code> &mdash; <span data-i18n="opt-mnemonic">import an existing BIP39 mnemonic phrase</span></li>
           <li><code>--mnemonic-length</code> &mdash; <span data-i18n="opt-mlen">word count (12 | 15 | 18 | 21 | 24, default 12)</span></li>
           <li><code>--passphrase</code> &mdash; <span data-i18n="opt-pass">prompt for encryption passphrase</span></li>
@@ -618,15 +634,15 @@ footer a:hover { color: var(--accent); }
           <summary data-i18n="examples">Examples</summary>
           <div class="example">
             <div class="example-label" data-i18n="ex-create-alias">Create a wallet with alias</div>
-            <div class="example-code">$ bitcold wallet create --alias my-wallet</div>
+            <div class="example-code">$ bitcold wallet create my-wallet</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-import-pass">Import from mnemonic with passphrase</div>
-            <div class="example-code">$ bitcold wallet create --alias imported --mnemonic "word1 word2 word3 ..." --passphrase "my-passphrase"</div>
+            <div class="example-code">$ bitcold wallet create imported --mnemonic "word1 word2 word3 ..." --passphrase "my-passphrase"</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-gen-24">Generate 24-word mnemonic and display it</div>
-            <div class="example-code">$ bitcold wallet create --alias secure-wallet --mnemonic-length 24 --show-mnemonic</div>
+            <div class="example-code">$ bitcold wallet create secure-wallet --mnemonic-length 24 --show-mnemonic</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-ephemeral">Create ephemeral wallet (not saved to disk)</div>
@@ -634,7 +650,7 @@ footer a:hover { color: var(--accent); }
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-entropy">Create from custom entropy (coin flips / dice rolls)</div>
-            <div class="example-code">$ bitcold wallet create --alias dice-wallet --entropy-bits 10110100...  # 128/256 bits</div>
+            <div class="example-code">$ bitcold wallet create dice-wallet --entropy-bits 10110100...  # 128/256 bits</div>
           </div>
         </details>
         <div class="security-note">
@@ -1022,6 +1038,99 @@ function copyInstall(btn) {
     btn.textContent = success;
     setTimeout(function() { btn.textContent = original; }, 1500);
   });
+}
+
+// ── Auto-playing Terminal Demo ──
+const promptPrefix = '\x1b[1;32m~\x1b[0m \x1b[1;36m❯\x1b[0m ';
+
+const demoCases = [
+  {
+    command: 'bitcold wallet create vault',
+    output: [
+      { text: '\x1b[1;34m?\x1b[0m Create a passphrase for the CLI \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 400 },
+      { text: '\x1b[1;34m?\x1b[0m Confirm passphrase \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 400 },
+      { text: '\x1b[1;32mWallet \'vault\' created!\x1b[0m\r\n', delay: 800 }
+    ]
+  },
+  {
+    command: 'bitcold wallet list',
+    output: [
+      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 400 },
+      { text: '0.vault [default bc1q...ak3a]\r\n', delay: 1500 }
+    ]
+  },
+  {
+    command: 'bitcold tx sign --qr --from vault@default --to bc1qcvhuak5gc... \\\n\r  --amount 99999754 --fee 246 \\\n\r  --utxo c5fa5d71deaa6731fb90...:4:80000000 --utxo 8ab61a6dc59637de8bdd:0:20000000',
+    output: [
+      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 600 },
+      { text: 'Fee rate: 1.39 sats/vbyte\r\n', delay: 100 },
+      { text: 'Signed transaction (177 vbytes):\r\n', delay: 100 },
+      { text: '02000000000102f28230fb35bdd86bf22e27816ce288cd0a1b43ac226690fb3167aade715dfac50000000000ff...\r\n\n', delay: 2000 },
+      { text: '\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u2584\u2584\n\r\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2584\u2580\u2588\u0020\u2588\u2580\u0020\u2588\u0020\u2584\u2584\u2584\u0020\u2588\n\r\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u2588\u2580\u2580\u2580\u2584\u0020\u2588\u0020\u2588\u2588\u2588\u0020\u2588\n\r\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2588\u0020\u2588\u2580\u2588\u2584\u0020\u2588\u2584\u2584\u2584\u2584\u2584\u2588\n\r\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u0020\u2588\u0020\u0020\u2588\u0020\u2584\u2584\u2584\u2584\u2584\n\r\u0020\u2584\u2580\u2584\u2588\u2580\u2584\u2580\u2580\u2580\u0020\u2580\u2588\u2580\u2584\u0020\u2580\u2584\u2580\u2580\u2580\u2580\n\r\u2580\u0020\u2588\u0020\u2580\u2588\u2584\u2588\u2588\u2584\u2584\u2580\u2584\u2588\u2584\u2580\u2580\u2584\u2584\u2584\u2580\u2588\n\r\u0020\u2580\u2584\u0020\u0020\u2588\u2584\u0020\u2584\u2584\u2588\u2588\u0020\u2588\u2584\u2584\u0020\u0020\u2584\u2584\u2580\n\r\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u2580\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2588\u2584\u2588\u2584\u2580\n\r\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2588\u2588\u0020\u0020\u0020\u2588\u2584\u2584\u2584\u2588\u2584\u2584\u2584\u2584\n\r\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u0020\u2584\u2588\u0020\u2580\u0020\u0020\u2580\u2588\u2584\u2580\u0020\u2588\n\r\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2584\u2584\u2580\u0020\u0020\u2584\u0020\u2588\u2580\u2580\u2584\u2584\u2580\u2588\n\r', delay: 100 }
+    ]
+  }
+];
+
+window.addEventListener('load', () => {
+  const terminalEl = document.getElementById('terminal');
+  if (!terminalEl) return;
+
+  const term = new Terminal({
+    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: 14,
+    theme: {
+      background: '#1a1a1a',
+      foreground: '#e4e4e7',
+      cursor: '#4ade80',
+    },
+    cursorBlink: true,
+    disableStdin: true,
+  });
+  
+  const fitAddon = new FitAddon.FitAddon();
+  term.loadAddon(fitAddon);
+  term.open(terminalEl);
+  fitAddon.fit();
+
+  window.addEventListener('resize', () => fitAddon.fit());
+
+  async function playDemo() {
+    while (true) { // Loop forever
+      term.reset();
+      term.write(promptPrefix);
+      await sleep(1000);
+
+      for (let s = 0; s < demoCases.length; s++) {
+        const scene = demoCases[s];
+        // 1. Type the command
+        for (let i = 0; i < scene.command.length; i++) {
+          term.write(scene.command[i]);
+          await sleep(30 + Math.random() * 40);
+        }
+        await sleep(300);
+        term.write('\r\n');
+
+        // 2. Output the programmed response
+        for (const out of scene.output) {
+          term.write(out.text);
+          await sleep(out.delay);
+        }
+
+        if (s < demoCases.length - 1) {
+          term.write(promptPrefix);
+          await sleep(2000); // Wait before next command
+        } else {
+          await sleep(3500); // Wait longer at the end of the loop before resetting
+        }
+      }
+    }
+  }
+
+  playDemo();
+});
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 </script>
 </body>
