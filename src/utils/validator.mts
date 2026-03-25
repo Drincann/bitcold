@@ -1,21 +1,8 @@
-import { hexSha256 } from "../crypto/hash.mjs";
-import { CliParameterError } from "../error/cli-error.mjs";
 import { bech32 } from 'bech32'
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 
 bitcoin.initEccLib(ecc);
-
-export async function checkHash(saved: string | undefined, provided: string) {
-  if (typeof saved !== 'string' || typeof provided !== 'string') {
-    throw new CliParameterError('CLI passphrase is incorrect');
-  }
-
-  const hash = await hexSha256(provided)
-  if (hash !== saved) {
-    throw new CliParameterError('CLI passphrase is incorrect');
-  }
-}
 
 export function isNotString(value: unknown): value is undefined {
   return typeof value !== 'string';

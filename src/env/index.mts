@@ -1,9 +1,8 @@
 import { Network, networks } from "bitcoinjs-lib";
-import { hexSha256 } from "../crypto/hash.mjs";
 import { repositories } from "../persistence/repository.mjs";
 import { CliParameterError } from "../error/cli-error.mjs";
 import prompts from "prompts";
-import { checkHash, isNotString } from "../utils/validator.mjs";
+import { isNotString } from "../utils/validator.mjs";
 
 const netMappings = {
   'testnet': networks.testnet,
@@ -37,25 +36,26 @@ function emptyToUndefined(value: string | undefined): string | undefined {
 
 export async function ensureCliLevelSecretInitialized() {
   let cliPassphrase = emptyToUndefined(process.env.BITCOLD_PASSPHRASE)
-  const secretSha256 = await repositories.secret.get()
-  if (secretSha256 === undefined) {
+  if (!(await repositories.initialized())) {
     if (cliPassphrase === undefined) {
-      cliPassphrase = await questionUserToCreateCliPassphrase(cliPassphrase);
+      cliPassphrase = await questionUserToCreateCliPassphrase();
     }
-
-    await repositories.secret.set(await hexSha256(cliPassphrase!))
+    await repositories.init(cliPassphrase!)
+    return
   }
 
   if (cliPassphrase === undefined) {
-    cliPassphrase = await questionCliPassphrase(cliPassphrase);
+    cliPassphrase = await questionCliPassphrase();
   }
 
-  await checkHash(await repositories.secret.get(), cliPassphrase);
-
-  await repositories.init(cliPassphrase)
+  await repositories.init(cliPassphrase!)
+  // Passphrase verification happens implicitly: loading encrypted data
+  // with a wrong passphrase will throw CliParameterError('CLI passphrase is incorrect')
+  // due to AES-256-GCM auth tag verification failure.
+  await repositories.wallet.getAllWallets()
 }
 
-async function questionUserToCreateCliPassphrase(cliPassphrase: string | undefined) {
+async function questionUserToCreateCliPassphrase() {
   const { value: passphrase } = await prompts({
     type: 'password',
     name: 'value',
@@ -75,18 +75,17 @@ async function questionUserToCreateCliPassphrase(cliPassphrase: string | undefin
     throw new CliParameterError('Passphrases do not match');
   }
 
-  cliPassphrase = passphrase;
-  return cliPassphrase;
+  return passphrase;
 }
 
-async function questionCliPassphrase(cliPassphrase: string | undefined) {
+async function questionCliPassphrase() {
   const response = await prompts({
     type: 'password',
     name: 'value',
     message: 'Enter a passphrase for the CLI'
   });
 
-  cliPassphrase = response.value;
+  const cliPassphrase = response.value;
   if (isNotString(cliPassphrase)) {
     throw new CliParameterError('CLI passphrase is required');
   }

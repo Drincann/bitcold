@@ -1,5 +1,12 @@
 import crypto from 'crypto'
 
+export class AesAuthenticationError extends Error {
+  constructor() {
+    super('Decryption failed: authentication tag mismatch')
+    this.name = 'AesAuthenticationError'
+  }
+}
+
 export type KdfParams = { name: 'scrypt'; N: number; r: number; p: number; keyLength: number }
 export interface CipherParams {
   name: 'aes-256-gcm'
@@ -52,8 +59,12 @@ export async function aesDecrypt(encrypted: unknown, passphrase: string): Promis
 
   const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv)
   decipher.setAuthTag(authTag)
-  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()])
-  return decrypted.toString('utf8')
+  try {
+    const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()])
+    return decrypted.toString('utf8')
+  } catch {
+    throw new AesAuthenticationError()
+  }
 }
 
 export async function deriveKey(password: string, salt: Buffer, kdf: KdfParams): Promise<Buffer> {
