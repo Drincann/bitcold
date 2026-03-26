@@ -40,7 +40,8 @@ export async function ensureCliLevelSecretInitialized() {
     if (cliPassphrase === undefined) {
       cliPassphrase = await questionUserToCreateCliPassphrase();
     }
-    await repositories.init(cliPassphrase!)
+    repositories.init(cliPassphrase!)
+    await repositories.wallet.init()
     return
   }
 
@@ -48,10 +49,7 @@ export async function ensureCliLevelSecretInitialized() {
     cliPassphrase = await questionCliPassphrase();
   }
 
-  await repositories.init(cliPassphrase!)
-  // Passphrase verification happens implicitly: loading encrypted data
-  // with a wrong passphrase will throw CliParameterError('CLI passphrase is incorrect')
-  // due to AES-256-GCM auth tag verification failure.
+  repositories.init(cliPassphrase!)
   await repositories.wallet.getAllWallets()
 }
 

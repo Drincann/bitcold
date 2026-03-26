@@ -8,6 +8,13 @@ class WalletRepository {
     return await storage.load('wallets') ?? []
   }
 
+  public async init(): Promise<void> {
+    const existingWallets = await storage.load('wallets')
+    if (existingWallets === undefined) {
+      await storage.save('wallets', [])
+    }
+  }
+
   public async getWallet(alias: string): Promise<StoredWalletData | undefined> {
     return (await this.getAllWallets()).find(wallet => wallet.alias === alias)
   }
@@ -45,7 +52,7 @@ const walletRepo = new WalletRepository()
 export const repositories = {
   wallet: walletRepo,
   initialized: () => storage.initialized(),
-  init: async (passphrase: string) => {
+  init: (passphrase: string) => {
     storage = new EncryptedUserHomeJsonStorage(passphrase)
   }
 }
