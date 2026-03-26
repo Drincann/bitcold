@@ -534,15 +534,135 @@ footer a:hover { color: var(--accent); }
   <div class="container">
     <h2 class="section-title"><span class="accent">$</span> <span data-i18n="nav-quickstart">Quick Start</span></h2>
 
+    <style>
+      #playground-container {
+        transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+        position: relative;
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        height: 350px;
+        overflow: hidden;
+      }
+      #playground-container.resizing {
+        transition: none !important;
+      }
+      #playground-container:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      }
+      #playground-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        backdrop-filter: blur(4px) saturate(180%);
+        -webkit-backdrop-filter: blur(4px) saturate(180%);
+      }
+      #playground-container:hover #playground-overlay { 
+        opacity: 1;
+        visibility: visible;
+      }
+      #playground-container:hover .try-live-fab {
+        background: var(--accent);
+        color: var(--bg);
+        animation: none;
+      }
+      .try-live-fab.hidden-permanent {
+        display: none !important;
+      }
+      .try-live-fab {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        background: transparent;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        font-family: var(--font-code);
+        font-size: 0.8rem;
+        font-weight: bold;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 0;
+        z-index: 101;
+        animation: pulse-green-border 1s infinite;
+      }
+      @keyframes pulse-green-border {
+        0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+      }
+      .terminal-controls {
+        margin-left: auto;
+        display: none;
+        gap: 8px;
+      }
+      .term-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        font-family: var(--font-code);
+        font-size: 0.7rem;
+        padding: 2px 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-radius: 0;
+      }
+      .term-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .resizer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        cursor: ns-resize;
+        display: none;
+        z-index: 102;
+        transition: background 0.2s;
+      }
+      .resizer:hover {
+        background: rgba(74, 222, 128, 0.2);
+      }
+    </style>
     <div id="playground" style="margin-bottom: 40px;">
-      <div style="background: var(--bg-surface); border: 1px solid var(--border); padding: 4px; display: flex; flex-direction: column; height: 350px;">
-        <div style="display: flex; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); align-items: center;">
+      <div id="playground-container">
+        
+        <div style="display: flex; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--border); align-items: center; background: var(--bg-surface); position: relative; z-index: 110;">
           <div style="width: 12px; height: 12px; border-radius: 50%; background: #ff5f56;"></div>
           <div style="width: 12px; height: 12px; border-radius: 50%; background: #ffbd2e;"></div>
           <div style="width: 12px; height: 12px; border-radius: 50%; background: #27c93f;"></div>
           <span style="font-family: var(--font-code); font-size: 0.8rem; color: var(--text-dim); margin-left: 8px;">terminal</span>
+          <div class="terminal-controls" id="terminal-controls">
+            <button class="term-btn" onclick="reloadTerminal()" data-i18n="qs-reload">Reload</button>
+            <button class="term-btn" onclick="deactivateTerminal()" data-i18n="qs-exit">Exit</button>
+          </div>
         </div>
-        <div id="terminal" style="flex: 1; padding: 12px; overflow: hidden; pointer-events: none;"></div>
+
+        <div style="flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+          <!-- Overlay -->
+          <div id="playground-overlay" onclick="activateTerminal()">
+          </div>
+
+          <!-- Floating Button -->
+          <button class="try-live-fab" onclick="activateTerminal()" data-i18n="qs-interact">Try Live</button>
+
+          <div id="terminal" style="flex: 1; padding: 12px; overflow: hidden; pointer-events: none;"></div>
+          <div id="iframe-container" style="flex: 1; display: none; padding: 0;"></div>
+        </div>
+        
+        <!-- Resizer handle -->
+        <div id="resizer" class="resizer"></div>
       </div>
     </div>
 
@@ -834,6 +954,9 @@ const translations = {
     'qs-install': 'Install',
     'qs-create': 'Create a wallet',
     'qs-sign': 'Sign a transaction',
+    'qs-interact': 'Click to Interact',
+    'qs-exit': 'Exit',
+    'qs-reload': 'Reload',
     'f1-t': 'Offline-first & Encrypted',
     'f1-d': 'Generate wallets and sign transactions entirely offline. Wallet data is <strong>encrypted locally in <code>~/.bitcold/</code></strong> with AES-256-GCM.',
     'f2-t': 'HD Wallet (BIP84)',
@@ -906,6 +1029,9 @@ const translations = {
     'qs-install': '安装',
     'qs-create': '创建钱包',
     'qs-sign': '签署交易',
+    'qs-interact': '点击交互',
+    'qs-exit': '退出',
+    'qs-reload': '刷新',
     'f1-t': '离线优先 & 加密存储',
     'f1-d': '完全离线生成钱包和签署交易。钱包数据<strong>本地加密存储在 <code>~/.bitcold/</code></strong>，使用 AES-256-GCM，密钥通过 scrypt 派生。',
     'f2-t': '分层确定性钱包 (BIP84)',
@@ -1040,6 +1166,82 @@ function copyInstall(btn) {
   });
 }
 
+function activateTerminal() {
+  document.getElementById('playground-overlay').style.display = 'none';
+  const fab = document.querySelector('.try-live-fab');
+  if (fab) {
+    fab.style.display = 'none';
+    fab.classList.add('hidden-permanent');
+  }
+  document.getElementById('terminal').style.display = 'none';
+  document.getElementById('terminal-controls').style.display = 'flex';
+  document.getElementById('resizer').style.display = 'block';
+  
+  const container = document.getElementById('playground-container');
+  container.style.height = '500px';
+  
+  const iframeContainer = document.getElementById('iframe-container');
+  iframeContainer.style.display = 'block';
+  iframeContainer.style.height = '100%';
+  reloadTerminal();
+}
+
+function deactivateTerminal() {
+  document.getElementById('playground-overlay').style.display = 'flex';
+  const fab = document.querySelector('.try-live-fab');
+  if (fab) {
+    fab.style.display = 'block';
+    fab.classList.remove('hidden-permanent');
+  }
+  document.getElementById('terminal').style.display = 'block';
+  document.getElementById('terminal-controls').style.display = 'none';
+  document.getElementById('resizer').style.display = 'none';
+  
+  const container = document.getElementById('playground-container');
+  container.style.height = '350px';
+  
+  const iframeContainer = document.getElementById('iframe-container');
+  iframeContainer.style.display = 'none';
+  iframeContainer.innerHTML = '';
+}
+
+function reloadTerminal() {
+  const iframeContainer = document.getElementById('iframe-container');
+  iframeContainer.innerHTML = '<iframe src="https://create-project--gaolihai.replit.app/" style="width: 100%; height: 100%; border: none; background: transparent;" allow="clipboard-read; clipboard-write"></iframe>';
+}
+
+// ── Resizer Logic ──
+(function() {
+  const resizer = document.getElementById('resizer');
+  const container = document.getElementById('playground-container');
+  let isResizing = false;
+
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    container.classList.add('resizing');
+    document.body.style.cursor = 'ns-resize';
+    // Add a pointer-events: none class to iframe during resize so it doesn't swallow events
+    document.getElementById('iframe-container').style.pointerEvents = 'none';
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const rect = container.getBoundingClientRect();
+    const newHeight = e.clientY - rect.top;
+    if (newHeight > 200 && newHeight < 1000) {
+      container.style.height = `${newHeight}px`;
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    isResizing = false;
+    container.classList.remove('resizing');
+    document.body.style.cursor = 'default';
+    document.getElementById('iframe-container').style.pointerEvents = 'auto';
+  });
+})();
+
 // ── Auto-playing Terminal Demo ──
 const promptPrefix = '\x1b[1;32m~\x1b[0m \x1b[1;36m❯\x1b[0m ';
 
@@ -1047,26 +1249,30 @@ const demoCases = [
   {
     command: 'bitcold wallet create vault',
     output: [
-      { text: '\x1b[1;34m?\x1b[0m Create a passphrase for the CLI \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 400 },
-      { text: '\x1b[1;34m?\x1b[0m Confirm passphrase \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 400 },
+      { text: '\x1b[1;34m?\x1b[0m Create a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 400 },
+      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
+      { text: '\x1b[1;34m?\x1b[0m Confirm passphrase \x1b[90m…\x1b[0m ', delay: 400 },
+      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
       { text: '\x1b[1;32mWallet \'vault\' created!\x1b[0m\r\n', delay: 800 }
     ]
   },
   {
     command: 'bitcold wallet list',
     output: [
-      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 400 },
+      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 400 },
+      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
       { text: '0.vault [default bc1q...ak3a]\r\n', delay: 1500 }
     ]
   },
   {
-    command: 'bitcold tx sign --qr --from vault@default --to bc1qcvhuak5gc... \\\n\r  --amount 99999754 --fee 246 \\\n\r  --utxo c5fa5d71deaa6731fb90...:4:80000000 --utxo 8ab61a6dc59637de8bdd:0:20000000',
+    command: 'bitcold tx sign --qr --from vault@default --to bc1qcvhuak5gc... \\\r\n  --amount 99999754 --fee 246 \\\r\n  --utxo c5fa5d71deaa6731fb90...:4:80000000 --utxo 8ab61a6dc59637de8bdd...:0:20000000',
     output: [
-      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m \x1b[36m*********\x1b[0m\r\n', delay: 600 },
+      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 600 },
+      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 600 },
       { text: 'Fee rate: 1.39 sats/vbyte\r\n', delay: 100 },
       { text: 'Signed transaction (177 vbytes):\r\n', delay: 100 },
       { text: '02000000000102f28230fb35bdd86bf22e27816ce288cd0a1b43ac226690fb3167aade715dfac50000000000ff...\r\n\n', delay: 2000 },
-      { text: '\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u2584\u2584\n\r\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2584\u2580\u2588\u0020\u2588\u2580\u0020\u2588\u0020\u2584\u2584\u2584\u0020\u2588\n\r\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u2588\u2580\u2580\u2580\u2584\u0020\u2588\u0020\u2588\u2588\u2588\u0020\u2588\n\r\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2588\u0020\u2588\u2580\u2588\u2584\u0020\u2588\u2584\u2584\u2584\u2584\u2584\u2588\n\r\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u0020\u2588\u0020\u0020\u2588\u0020\u2584\u2584\u2584\u2584\u2584\n\r\u0020\u2584\u2580\u2584\u2588\u2580\u2584\u2580\u2580\u2580\u0020\u2580\u2588\u2580\u2584\u0020\u2580\u2584\u2580\u2580\u2580\u2580\n\r\u2580\u0020\u2588\u0020\u2580\u2588\u2584\u2588\u2588\u2584\u2584\u2580\u2584\u2588\u2584\u2580\u2580\u2584\u2584\u2584\u2580\u2588\n\r\u0020\u2580\u2584\u0020\u0020\u2588\u2584\u0020\u2584\u2584\u2588\u2588\u0020\u2588\u2584\u2584\u0020\u0020\u2584\u2584\u2580\n\r\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u2580\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2588\u2584\u2588\u2584\u2580\n\r\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2588\u2588\u0020\u0020\u0020\u2588\u2584\u2584\u2584\u2588\u2584\u2584\u2584\u2584\n\r\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u0020\u2584\u2588\u0020\u2580\u0020\u0020\u2580\u2588\u2584\u2580\u0020\u2588\n\r\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2584\u2584\u2580\u0020\u0020\u2584\u0020\u2588\u2580\u2580\u2584\u2584\u2580\u2588\n\r', delay: 100 }
+      { text: '\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2584\u2580\u2588\u0020\u2588\u2580\u0020\u2588\u0020\u2584\u2584\u2584\u0020\u2588\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u2588\u2580\u2580\u2580\u2584\u0020\u2588\u0020\u2588\u2588\u2588\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2588\u0020\u2588\u2580\u2588\u2584\u0020\u2588\u2584\u2584\u2584\u2584\u2584\u2588\r\n\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u0020\u2588\u0020\u0020\u2588\u0020\u2584\u2584\u2584\u2584\u2584\r\n\u0020\u2584\u2580\u2584\u2588\u2580\u2584\u2580\u2580\u2580\u0020\u2580\u2588\u2580\u2584\u0020\u2580\u2584\u2580\u2580\u2580\u2580\r\n\u2580\u0020\u2588\u0020\u2580\u2588\u2584\u2588\u2588\u2584\u2584\u2580\u2584\u2588\u2584\u2580\u2580\u2584\u2584\u2584\u2580\u2588\r\n\u0020\u2580\u2584\u0020\u0020\u2588\u2584\u0020\u2584\u2584\u2588\u2588\u0020\u2588\u2584\u2584\u0020\u0020\u2584\u2584\u2580\r\n\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u2580\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2588\u2584\u2588\u2584\u2580\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2588\u2588\u0020\u0020\u0020\u2588\u2584\u2584\u2584\u2588\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u0020\u2584\u2588\u0020\u2580\u0020\u0020\u2580\u2588\u2584\u2580\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2584\u2584\u2580\u0020\u0020\u2584\u0020\u2588\u2580\u2580\u2584\u2584\u2580\u2588\r\n', delay: 100 }
     ]
   }
 ];
@@ -1076,7 +1282,7 @@ window.addEventListener('load', () => {
   if (!terminalEl) return;
 
   const term = new Terminal({
-    fontFamily: "'JetBrains Mono', monospace",
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
     fontSize: 14,
     theme: {
       background: '#1a1a1a',
