@@ -938,7 +938,7 @@ footer a:hover { color: var(--accent); }
       <a href="https://www.npmjs.com/package/bitcold">npm</a>
       <a href="https://github.com/Drincann/cry0/issues">Issues</a>
     </div>
-    <p>bitcold v0.2.0 &middot; <span data-i18n="license">WTFPL License</span></p>
+    <p>bitcold v0.4.2 &middot; <span data-i18n="license">WTFPL License</span></p>
   </div>
 </footer>
 
@@ -1096,11 +1096,19 @@ const translations = {
   }
 };
 
-let currentLang = localStorage.getItem('bitcold-lang') || 'en';
+const urlParams = new URLSearchParams(window.location.search);
+const queryLang = urlParams.get('lang');
+const supportedLangs = ['en', 'zh'];
+let currentLang = (queryLang && supportedLangs.includes(queryLang)) ? queryLang : (localStorage.getItem('bitcold-lang') || 'en');
 
 function updateLanguage(lang) {
   currentLang = lang;
   localStorage.setItem('bitcold-lang', lang);
+  
+  // Update URL query string without reloading
+  const url = new URL(window.location);
+  url.searchParams.set('lang', lang);
+  window.history.replaceState({}, '', url);
   
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
