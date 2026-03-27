@@ -11,8 +11,6 @@ export interface Mnemonic {
 
 export interface StoredMnemonic {
   words: string
-  hasPassphrase: boolean
-  passphraseSha256?: string
 }
 
 export interface Collections {
