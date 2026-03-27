@@ -2,7 +2,6 @@ import type { WalletData, StoredWalletData } from "./types.mjs";
 import { identity, toMap } from "../utils/fp.mjs";
 import { Account } from "./account.mjs";
 import { Mnemonic } from "./types.mjs";
-import { hexSha256 } from "../crypto/hash.mjs";
 import prompts from "prompts";
 import { CliParameterError } from "../error/cli-error.mjs";
 import { printer } from "../cli/output/index.mjs";
@@ -55,29 +54,20 @@ export class Wallet {
   }
 
   public static async from(data: StoredWalletData): Promise<Wallet> {
+    const result = await prompts({
+      type: 'password',
+      name: 'value',
+      message: 'Enter the wallet "' + data.alias + '" mnemonic passphrase (leave blank to skip)'
+    })
+
+    const passphrase = typeof result.value === 'string' && result.value.length > 0 ? result.value : undefined
+
     const walletData: WalletData = {
       ...data,
       mnemonic: {
-        ...data.mnemonic,
-        passphrase: undefined
+        words: data.mnemonic.words,
+        passphrase: passphrase
       }
-    }
-
-    if (data.mnemonic.hasPassphrase) {
-      const result = await prompts({
-        type: 'password',
-        name: 'value',
-        message: 'Enter the wallet "' + data.alias + '" mnemonic passphrase'
-      })
-      if (typeof result.value !== 'string' || result.value.length === 0) {
-        throw new CliParameterError('Passphrase is required');
-      }
-
-      if (!await hashMatches(data.mnemonic.passphraseSha256, result.value)) {
-        throw new CliParameterError('Passphrase is incorrect');
-      }
-
-      walletData.mnemonic.passphrase = result.value
     }
 
     return new Wallet(
@@ -91,31 +81,11 @@ export class Wallet {
     return {
       alias: this.alias,
       mnemonic: {
-        hasPassphrase: isNonEmptyString(this.mnemonic.passphrase),
-        passphraseSha256: this.mnemonic.passphrase ? await hexSha256(this.mnemonic.passphrase) : undefined,
         words: this.mnemonic.words,
       },
       accounts: [...this.accounts.values()].map(account => account.serialize())
     }
   }
-}
-
-function assignPassphrase(walletData: StoredWalletData, value: string): WalletData {
-  return {
-    ...walletData,
-    mnemonic: {
-      ...walletData.mnemonic,
-      passphrase: value
-    }
-  }
-}
-
-async function hashMatches(passphraseSha256: string | undefined, value: string): Promise<boolean> {
-  return await hexSha256(value) === passphraseSha256;
-}
-
-function isNonEmptyString(passphrase: string | undefined): boolean {
-  return typeof passphrase === 'string' && passphrase.length > 0;
 }
 
 /** Smallest non-negative integer not used by any account (fills gaps before extending). */
