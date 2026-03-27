@@ -41,6 +41,8 @@ export const walletCreateCommand = new Command()
       check(opts); assert(opts.entropyBits != undefined || isValidMnemonicLength(opts.mnemonicLength))
 
       const walletName = opts.ephemeral ? 'ephemeral' : opts.alias ?? await generateNextWalletName()
+      await checkNameUnique(opts, walletName);
+
       const mnemonic = {
         words: opts.mnemonic ?? mnemonicUtil.generate(toBuffer(opts.entropyBits) as Buffer | undefined ?? opts.mnemonicLength as 12 | 15 | 18 | 21 | 24),
         passphrase: opts.passphrase
@@ -67,6 +69,16 @@ export const walletCreateCommand = new Command()
       }
     }
   })
+
+async function checkNameUnique(opts: WalletCreateParams, walletName: string) {
+  if (opts.ephemeral) {
+    return
+  }
+  const existingWallet = await repos.wallet.getWallet(walletName);
+  if (existingWallet !== undefined) {
+    throw new CliParameterError(`wallet alias '${walletName}' already exists`);
+  }
+}
 
 function toBuffer(bits?: string): Buffer | undefined {
   if (bits == undefined) {
