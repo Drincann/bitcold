@@ -1,10 +1,8 @@
 import { Command } from 'commander';
-import { Wallet } from '../../../domain/wallet.mjs';
 import prompts from 'prompts'
 import { repositories as repos } from '../../../persistence/repository.mjs';
 import { printer } from '../../output/index.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
-import { accountSummary } from '../../../utils/display.mjs';
 import { CliError } from '../../../error/cli-error.mjs';
 
 export const walletRemoveCommand = new Command()
@@ -23,17 +21,17 @@ export const walletRemoveCommand = new Command()
         return;
       }
 
-      const wallet = await Wallet.from(walletData);
       if (!opts.yes) {
         const answer = await prompts({
           type: 'confirm',
           name: 'value',
-          message: `Are you sure you want to remove wallet '${walletAlias}' [${accountSummary(wallet.accounts)}]?`
+          message: `Are you sure you want to remove wallet '${walletAlias}' [${walletData.accounts.map(a => a.alias).join(', ')}]?`
         });
-        if (!answer) return;
-        repos.wallet.remove(walletAlias);
-        printer.info(`Wallet '${walletAlias}' removed`);
+        if (!answer.value) return;
       }
+
+      await repos.wallet.remove(walletAlias);
+      printer.info(`Wallet '${walletAlias}' removed`);
     } catch (e: unknown) {
       if (e instanceof CliError) {
         printer.error(e.message)
