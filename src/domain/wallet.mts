@@ -17,8 +17,8 @@ export class Wallet {
     this.accounts = toMap(accounts, account => account.alias, identity())
   }
 
-  public static generateWithDefaultAccount(alias: string, mnemonic: Mnemonic) {
-    return new Wallet(alias, mnemonic, [new Account(mnemonic, 0, 'default')])
+  public static generateWithInitialAccount(alias: string, mnemonic: Mnemonic) {
+    return new Wallet(alias, mnemonic, [new Account(mnemonic, 0, 'account_0')])
   }
 
   public addAccount(accountAlias: string, index?: number): void {
