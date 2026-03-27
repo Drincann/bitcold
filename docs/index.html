@@ -600,6 +600,44 @@ footer a:hover { color: var(--accent); }
         70% { box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
         100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
       }
+      #terminal-loader {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 16px;
+        background: var(--bg-surface);
+        z-index: 50;
+      }
+      .loader-spinner {
+        width: 32px;
+        height: 32px;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .loader-text {
+        font-family: var(--font-code);
+        font-size: 0.8rem;
+        color: var(--text-dim);
+      }
+      /* Hide scrollbars for terminal previews - especially on Windows */
+      #terminal, #terminal .xterm-viewport, #iframe-container, #iframe-container iframe {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      #terminal::-webkit-scrollbar, 
+      #terminal .xterm-viewport::-webkit-scrollbar, 
+      #iframe-container::-webkit-scrollbar,
+      #iframe-container iframe::-webkit-scrollbar {
+        display: none;
+      }
       .terminal-controls {
         margin-left: auto;
         display: none;
@@ -658,6 +696,10 @@ footer a:hover { color: var(--accent); }
           <button class="try-live-fab" onclick="activateTerminal()" data-i18n="qs-interact">Try Live</button>
 
           <div id="terminal" style="flex: 1; padding: 12px; overflow: hidden; pointer-events: none;"></div>
+          <div id="terminal-loader">
+            <div class="loader-spinner"></div>
+            <div class="loader-text" data-i18n="qs-loading">Connecting to terminal...</div>
+          </div>
           <div id="iframe-container" style="flex: 1; display: none; padding: 0;"></div>
         </div>
         
@@ -745,7 +787,7 @@ footer a:hover { color: var(--accent); }
         <ul class="cmd-desc">
           <li><code>--mnemonic</code> &mdash; <span data-i18n="opt-mnemonic">import an existing BIP39 mnemonic phrase</span></li>
           <li><code>--mnemonic-length</code> &mdash; <span data-i18n="opt-mlen">word count (12 | 15 | 18 | 21 | 24, default 12)</span></li>
-          <li><code>--passphrase</code> &mdash; <span data-i18n="opt-pass">prompt for encryption passphrase</span></li>
+          <li><code>--passphrase</code> &mdash; <span data-i18n="opt-pass">BIP39 passphrase for derivation preview only (never saved, for plausible deniability)</span></li>
           <li><code>--show-mnemonic</code> &mdash; <span data-i18n="opt-show-mnemonic">display the mnemonic after creation</span></li>
           <li><code>--ephemeral</code> &mdash; <span data-i18n="opt-ephemeral">generate once, never save to disk</span></li>
           <li><code>--entropy-bits</code> &mdash; <span data-i18n="opt-entropy">supply your own binary entropy (dice rolls / coin flips)</span></li>
@@ -801,6 +843,14 @@ footer a:hover { color: var(--accent); }
             <div class="example-code">$ bitcold wallet show my-wallet --private --mnemonic</div>
           </div>
         </details>
+      </div>
+
+      <div class="cmd-block">
+        <h4>wallet receive &lt;wallet@account&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet receive vault@account_0</div>
+        <ul class="cmd-desc">
+          <li data-i18n="cmd-receive-d">Display a receive address and its QR code.</li>
+        </ul>
       </div>
 
       <div class="cmd-block">
@@ -957,6 +1007,7 @@ const translations = {
     'qs-interact': 'Click to Interact',
     'qs-exit': 'Exit',
     'qs-reload': 'Reload',
+    'qs-loading': 'Connecting to terminal...',
     'f1-t': 'Offline-first & Encrypted',
     'f1-d': 'Generate wallets and sign transactions entirely offline. Wallet data is <strong>encrypted locally in <code>~/.bitcold/</code></strong> with AES-256-GCM.',
     'f2-t': 'HD Wallet (BIP84)',
@@ -975,7 +1026,7 @@ const translations = {
     'opt-alias': 'wallet name',
     'opt-mnemonic': 'import an existing BIP39 mnemonic phrase',
     'opt-mlen': 'word count (12 | 15 | 18 | 21 | 24, default 12)',
-    'opt-pass': 'prompt for encryption passphrase',
+    'opt-pass': 'BIP39 passphrase for derivation preview only (never saved, for plausible deniability)',
     'opt-show-mnemonic': 'display the mnemonic after creation',
     'opt-ephemeral': 'generate once, never save to disk',
     'opt-entropy': 'supply your own binary entropy (dice rolls / coin flips)',
@@ -1000,6 +1051,7 @@ const translations = {
     'ex-acc-custom': 'Add with custom alias and derivation index',
     'ex-acc-rem-conf': 'Remove with confirmation',
     'ex-acc-rem-yes': 'Skip confirmation',
+    'cmd-receive-d': 'Display a receive address and its QR code.',
     'opt-from': 'sender as <strong>wallet@account</strong>',
     'opt-to': 'recipient address or <strong>wallet@account</strong> reference',
     'opt-amount': 'amount in satoshis',
@@ -1032,6 +1084,7 @@ const translations = {
     'qs-interact': '点击交互',
     'qs-exit': '退出',
     'qs-reload': '刷新',
+    'qs-loading': '正在连接终端...',
     'f1-t': '离线优先 & 加密存储',
     'f1-d': '完全离线生成钱包和签署交易。钱包数据<strong>本地加密存储在 <code>~/.bitcold/</code></strong>，使用 AES-256-GCM，密钥通过 scrypt 派生。',
     'f2-t': '分层确定性钱包 (BIP84)',
@@ -1050,7 +1103,7 @@ const translations = {
     'opt-alias': '钱包别名',
     'opt-mnemonic': '导入现有的 BIP39 助记词',
     'opt-mlen': '助记词长度 (12 | 15 | 18 | 21 | 24, 默认为 12)',
-    'opt-pass': '提示输入加密密码',
+    'opt-pass': 'BIP39 密语，仅用于派生预览（不会保存至本地，保护可抵赖性）',
     'opt-show-mnemonic': '创建后显示助记词',
     'opt-ephemeral': '一次性生成，不保存到磁盘',
     'opt-entropy': '提供自定义二进制熵（掷骰子 / 抛硬币）',
@@ -1075,6 +1128,7 @@ const translations = {
     'ex-acc-custom': '添加自定义别名和派生索引的账户',
     'ex-acc-rem-conf': '带确认的账户删除',
     'ex-acc-rem-yes': '跳过确认删除账户',
+    'cmd-receive-d': '显示收款地址及其二维码。',
     'opt-from': '发送者，格式为 <strong>wallet@account</strong>',
     'opt-to': '接收者地址或 <strong>wallet@account</strong> 引用',
     'opt-amount': '金额（单位：聪）',
@@ -1208,14 +1262,37 @@ function deactivateTerminal() {
   const container = document.getElementById('playground-container');
   container.style.height = '350px';
   
+  const loader = document.getElementById('terminal-loader');
+  if (loader) loader.style.display = 'none';
+
   const iframeContainer = document.getElementById('iframe-container');
   iframeContainer.style.display = 'none';
   iframeContainer.innerHTML = '';
 }
 
 function reloadTerminal() {
+  const loader = document.getElementById('terminal-loader');
   const iframeContainer = document.getElementById('iframe-container');
-  iframeContainer.innerHTML = '<iframe src="https://create-project--gaolihai.replit.app/" style="width: 100%; height: 100%; border: none; background: transparent;" allow="clipboard-read; clipboard-write"></iframe>';
+  
+  if (loader) loader.style.display = 'flex';
+  
+  const iframe = document.createElement('iframe');
+  iframe.src = "https://create-project--gaolihai.replit.app/";
+  iframe.style.width = "100%";
+  iframe.style.height = "100%";
+  iframe.style.border = "none";
+  iframe.style.background = "transparent";
+  iframe.style.opacity = "0";
+  iframe.style.transition = "opacity 0.3s ease";
+  iframe.setAttribute('allow', 'clipboard-read; clipboard-write');
+  
+  iframeContainer.innerHTML = '';
+  iframeContainer.appendChild(iframe);
+  
+  iframe.onload = () => {
+    if (loader) loader.style.display = 'none';
+    iframe.style.opacity = "1";
+  };
 }
 
 // ── Resizer Logic ──
@@ -1257,28 +1334,39 @@ const demoCases = [
   {
     command: 'bitcold wallet create vault',
     output: [
-      { text: '\x1b[1;34m?\x1b[0m Create a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 400 },
+      { text: '\x1b[1;34m?\x1b[0m Create a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 1000 },
+      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 0 },
+      { text: '\x1b[1;34m?\x1b[0m Confirm passphrase \x1b[90m…\x1b[0m ', delay: 1000 },
       { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
-      { text: '\x1b[1;34m?\x1b[0m Confirm passphrase \x1b[90m…\x1b[0m ', delay: 400 },
-      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
-      { text: '\x1b[1;32mWallet \'vault\' created!\x1b[0m\r\n', delay: 800 }
+      { text: '\x1b[1;32mWallet \'vault\' created!\x1b[0m\r\n', delay: 0 }
     ]
   },
   {
     command: 'bitcold wallet list',
     output: [
-      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 400 },
+      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 1000 },
       { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
-      { text: '0.vault [default bc1q...ak3a]\r\n', delay: 1500 }
+      { text: '0  vault  [account_0]\r\n', delay: 0 }
     ]
   },
   {
-    command: 'bitcold tx sign --qr --from vault@default --to bc1qcvhuak5gc... \\\r\n  --amount 99999754 --fee 246 \\\r\n  --utxo c5fa5d71deaa6731fb90...:4:80000000 --utxo 8ab61a6dc59637de8bdd...:0:20000000',
+    command: 'bitcold wallet receive vault@account_0',
     output: [
-      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 600 },
-      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 600 },
+      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 1000 },
+      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
+      { text: '\x1b[1;34m?\x1b[0m Enter the wallet "vault" mnemonic passphrase (leave blank to skip) \x1b[90m…\x1b[0m \r\n', delay: 500 },
+      { text: 'bc1qk2j6c5vwa2hqrnqrs6r953paw8ld84ryqg5czq\r\n\r\n', delay: 500 },
+      { text: '\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2584\u2580\u2588\u0020\u2588\u2580\u0020\u2588\u0020\u2584\u2584\u2584\u0020\u2588\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u2588\u2580\u2580\u2580\u2584\u0020\u2588\u0020\u2588\u2588\u2588\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2588\u0020\u2588\u2580\u2588\u2584\u0020\u2588\u2584\u2584\u2584\u2584\u2584\u2588\r\n\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u0020\u2588\u0020\u0020\u2588\u0020\u2584\u2584\u2584\u2584\u2584\r\n\u0020\u2584\u2580\u2584\u2588\u2580\u2584\u2580\u2580\u2580\u0020\u2580\u2588\u2580\u2584\u0020\u2580\u2584\u2580\u2580\u2580\u2580\r\n\u2580\u0020\u2588\u0020\u2580\u2588\u2584\u2588\u2588\u2584\u2584\u2580\u2584\u2588\u2584\u2580\u2580\u2584\u2584\u2584\u2580\u2588\r\n\u0020\u2580\u2584\u0020\u0020\u2588\u2584\u0020\u2584\u2584\u2588\u2588\u0020\u2588\u2584\u2584\u0020\u0020\u2584\u2584\u2580\r\n\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u2580\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2588\u2584\u2588\u2584\u2580\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2588\u2588\u0020\u0020\u0020\u2588\u2584\u2584\u2584\u2588\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u0020\u2584\u2588\u0020\u2580\u0020\u0020\u2580\u2588\u2584\u2580\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2584\u2584\u2580\u0020\u0020\u2584\u0020\u2588\u2580\u2580\u2584\u2584\u2580\u2588\r\n\r\n', delay: 100 }
+    ]
+  },
+  {
+    command: 'bitcold tx sign --qr --from vault@account_0 --to bc1qcvhuak5gc... \\\r\n  --amount 99999754 --fee 246 \\\r\n  --utxo c5fa5d71deaa6731fb90...:4:80000000 --utxo 8ab61a6dc59637de8bdd...:0:20000000',
+    output: [
+      { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 1000 },
+      { text: '\x1b[36m*********\x1b[0m\r\n', delay: 0 },
+      { text: '\x1b[1;34m?\x1b[0m Enter the wallet "vault" mnemonic passphrase (leave blank to skip) \x1b[90m…\x1b[0m \r\n', delay: 500 },
       { text: 'Fee rate: 1.39 sats/vbyte\r\n', delay: 100 },
-      { text: 'Signed transaction (177 vbytes):\r\n', delay: 100 },
+      { text: 'Signed transaction (177 vbytes):\r\n\r\n', delay: 100 },
       { text: '02000000000102f28230fb35bdd86bf22e27816ce288cd0a1b43ac226690fb3167aade715dfac50000000000ff...\r\n\n', delay: 2000 },
       { text: '\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2584\u2580\u2588\u0020\u2588\u2580\u0020\u2588\u0020\u2584\u2584\u2584\u0020\u2588\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u2588\u2580\u2580\u2580\u2584\u0020\u2588\u0020\u2588\u2588\u2588\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2588\u0020\u2588\u2580\u2588\u2584\u0020\u2588\u2584\u2584\u2584\u2584\u2584\u2588\r\n\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u0020\u2588\u0020\u0020\u2588\u0020\u2584\u2584\u2584\u2584\u2584\r\n\u0020\u2584\u2580\u2584\u2588\u2580\u2584\u2580\u2580\u2580\u0020\u2580\u2588\u2580\u2584\u0020\u2580\u2584\u2580\u2580\u2580\u2580\r\n\u2580\u0020\u2588\u0020\u2580\u2588\u2584\u2588\u2588\u2584\u2584\u2580\u2584\u2588\u2584\u2580\u2580\u2584\u2584\u2584\u2580\u2588\r\n\u0020\u2580\u2584\u0020\u0020\u2588\u2584\u0020\u2584\u2584\u2588\u2588\u0020\u2588\u2584\u2584\u0020\u0020\u2584\u2584\u2580\r\n\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u2580\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2588\u2584\u2588\u2584\u2580\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2588\u2588\u0020\u0020\u0020\u2588\u2584\u2584\u2584\u2588\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u0020\u2584\u2588\u0020\u2580\u0020\u0020\u2580\u2588\u2584\u2580\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2584\u2584\u2580\u0020\u0020\u2584\u0020\u2588\u2580\u2580\u2584\u2584\u2580\u2588\r\n', delay: 100 }
     ]
