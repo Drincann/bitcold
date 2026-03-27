@@ -60,7 +60,19 @@ export class Wallet {
       message: 'Enter the wallet "' + data.alias + '" mnemonic passphrase (leave blank to skip)'
     })
 
-    const passphrase = typeof result.value === 'string' && result.value.length > 0 ? result.value : undefined
+    let passphrase = typeof result.value === 'string' && result.value.length > 0 ? result.value : undefined
+
+    if (passphrase !== undefined) {
+      const confirm = await prompts({
+        type: 'password',
+        name: 'value',
+        message: 'Confirm passphrase'
+      })
+
+      if (confirm.value !== passphrase) {
+        throw new CliParameterError('Passphrases do not match')
+      }
+    }
 
     const walletData: WalletData = {
       ...data,
