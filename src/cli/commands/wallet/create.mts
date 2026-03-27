@@ -46,7 +46,7 @@ export const walletCreateCommand = new Command()
         passphrase: opts.passphrase
       }
 
-      const wallet: Wallet = Wallet.generateWithDefaultAccount(walletName, mnemonic)
+      const wallet: Wallet = Wallet.generateWithInitialAccount(walletName, mnemonic)
 
       if (opts.showMnemonic) {
         printer.warn('warn: mnemonic is shown in the console, please keep it safe')
