@@ -20,7 +20,7 @@ export const walletListCommand = new Command()
 
       for (let i = 0; i < walletsData.length; i++) {
         const walletData = walletsData[i];
-        printer.info(`${i}.${walletData.alias} [${summary(walletData)}]`);
+        printer.info(`${i}  ${walletData.alias}  [${summary(walletData)}]`);
       }
     } catch (e: unknown) {
       if (e instanceof CliError) {

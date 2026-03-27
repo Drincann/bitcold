@@ -51,8 +51,8 @@ export const walletCreateCommand = new Command()
       const wallet: Wallet = Wallet.generateWithInitialAccount(walletName, mnemonic)
 
       if (opts.showMnemonic) {
-        printer.warn('warn: mnemonic is shown in the console, please keep it safe')
-        printer.info('Generated mnemonic: ' + mnemonic.words)
+        printer.warn('warn: mnemonic shown in console, keep it safe')
+        printer.info('Mnemonic: ' + mnemonic.words)
       }
 
       if (opts.ephemeral) {
