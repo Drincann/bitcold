@@ -78,34 +78,16 @@ export const txSignCommand = new Command()
     }
   })
 
-async function resolveAddress(addressOrRef: string): Promise<BtcAddress> {
-  if (isAddressRef(addressOrRef)) {
-    return await dereferenceAddress(addressOrRef)
-  }
-
-  throw new CliError('Invalid address reference \'' + addressOrRef + '\'')
+async function resolveAddress(addressRef: string): Promise<BtcAddress> {
+  return await Wallet.dereference(addressRef)
 }
 
 async function resolveRawAddress(addressOrRef: string): Promise<string> {
   if (isAddressRef(addressOrRef)) {
-    return (await dereferenceAddress(addressOrRef)).address
+    return (await Wallet.dereference(addressOrRef)).address
   }
 
   return addressOrRef
-}
-
-async function dereferenceAddress(addressRef: string): Promise<BtcAddress> {
-  const [walletAlias, addressAlias] = addressRef.split('@')
-  const walletData = await repos.wallet.getWallet(walletAlias)
-  if (walletData === undefined) {
-    throw new CliError('Wallet \'' + walletAlias + '\' not found')
-  }
-  const wallet = await Wallet.from(walletData)
-  if (wallet.accounts.get(addressAlias) === undefined) {
-    throw new CliError('Address \'' + addressAlias + '\' not found in wallet \'' + walletAlias + '\'')
-  }
-
-  return wallet.accounts.get(addressAlias)?.addresses['BTC'] as BtcAddress
 }
 
 function check(opts: TxSignParameters): CheckedTxSignParameters {
