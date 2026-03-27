@@ -65,6 +65,7 @@ export const txSignCommand = new Command()
       const vsize = calcVSizeFromHex(signedTx.hex())
       printer.info('Fee rate: ' + (opts.fee / vsize).toFixed(2) + ' sats/vbyte')
       printer.info('Signed transaction (' + vsize + ' vbytes):')
+      printer.info('')
       printer.info(signedTx.hex())
 
       if (cmd.opts().qr) {

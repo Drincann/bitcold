@@ -16,14 +16,14 @@ export function getBtcNetwork(): Network {
   const definedNetwork = emptyToUndefined(process.env.BITCOLD_BITCOIN_NETWORK)
   if (definedNetwork === undefined) {
     if (!networkSelectNotified) {
-      console.warn('BITCOLD_BITCOIN_NETWORK is not set, using mainnet')
+      console.warn('warn: using mainnet (BITCOLD_BITCOIN_NETWORK not set)')
       networkSelectNotified = true
     }
     return networks.bitcoin
   }
 
   if (!networkSelectNotified) {
-    console.warn('BITCOLD_BITCOIN_NETWORK is set to ' + definedNetwork)
+    console.warn('warn: using ' + definedNetwork)
     networkSelectNotified = true
   }
 
