@@ -3,8 +3,10 @@ import { identity, toMap } from "../utils/fp.mjs";
 import { Account } from "./account.mjs";
 import { Mnemonic } from "./types.mjs";
 import prompts from "prompts";
-import { CliParameterError } from "../error/cli-error.mjs";
+import { CliError, CliParameterError } from "../error/cli-error.mjs";
 import { printer } from "../cli/output/index.mjs";
+import { repositories as repos } from "../persistence/repository.mjs";
+import { BtcAddress } from "./address.mjs";
 
 export class Wallet {
   public mnemonic: Mnemonic
@@ -97,6 +99,26 @@ export class Wallet {
       },
       accounts: [...this.accounts.values()].map(account => account.serialize())
     }
+  }
+
+  public static async dereference(addressRef: string): Promise<BtcAddress> {
+    const [walletAlias, accountAlias] = addressRef.split('@')
+    if (!walletAlias || !accountAlias) {
+      throw new CliError(`Invalid address reference '${addressRef}', expected format: wallet@account`)
+    }
+
+    const walletData = await repos.wallet.getWallet(walletAlias)
+    if (walletData === undefined) {
+      throw new CliError(`Wallet '${walletAlias}' not found`)
+    }
+
+    const wallet = await Wallet.from(walletData)
+    const account = wallet.accounts.get(accountAlias)
+    if (account === undefined) {
+      throw new CliError(`Account '${accountAlias}' not found in wallet '${walletAlias}'`)
+    }
+
+    return account.addresses.BTC
   }
 }
 
