@@ -727,7 +727,7 @@ footer a:hover { color: var(--accent); }
         <div class="step-number">3</div>
         <div class="step-content">
           <h3 data-i18n="qs-sign">Sign a transaction</h3>
-          <div class="step-code">$ bitcold tx sign --from my-wallet@default --to bc1q... --amount 50000 --fee 1500 --utxo &lt;hash:index:value&gt;</div>
+          <div class="step-code">$ bitcold tx sign --from my-wallet@default --to bc1q... --amount 50000 --fee 1500 --utxo &lt;txid:vout:value&gt;</div>
         </div>
       </div>
     </div>
@@ -789,7 +789,6 @@ footer a:hover { color: var(--accent); }
           <li><code>--mnemonic-length</code> &mdash; <span data-i18n="opt-mlen">word count (12 | 15 | 18 | 21 | 24, default 12)</span></li>
           <li><code>--passphrase</code> &mdash; <span data-i18n="opt-pass">BIP39 passphrase for derivation preview only (never saved, for plausible deniability)</span></li>
           <li><code>--show-mnemonic</code> &mdash; <span data-i18n="opt-show-mnemonic">display the mnemonic after creation</span></li>
-          <li><code>--ephemeral</code> &mdash; <span data-i18n="opt-ephemeral">generate once, never save to disk</span></li>
           <li><code>--entropy-bits</code> &mdash; <span data-i18n="opt-entropy">supply your own binary entropy (dice rolls / coin flips)</span></li>
         </ul>
         <details class="cmd-examples">
@@ -807,12 +806,8 @@ footer a:hover { color: var(--accent); }
             <div class="example-code">$ bitcold wallet create secure-wallet --mnemonic-length 24 --show-mnemonic</div>
           </div>
           <div class="example">
-            <div class="example-label" data-i18n="ex-ephemeral">Create ephemeral wallet (not saved to disk)</div>
-            <div class="example-code">$ bitcold wallet create --ephemeral</div>
-          </div>
-          <div class="example">
             <div class="example-label" data-i18n="ex-entropy">Create from custom entropy (coin flips / dice rolls)</div>
-            <div class="example-code">$ bitcold wallet create dice-wallet --entropy-bits 10110100...  # 128/256 bits</div>
+            <div class="example-code">$ bitcold wallet create dice-wallet --entropy-bits 10110100... # 128/256 bits</div>
           </div>
         </details>
         <div class="security-note">
@@ -822,8 +817,8 @@ footer a:hover { color: var(--accent); }
       </div>
 
       <div class="cmd-block">
-        <h4>wallet show &lt;alias&gt;</h4>
-        <div class="cmd-syntax">$ bitcold wallet show my-wallet [options]</div>
+        <h4>wallet show &lt;alias-or-address-ref&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet show wallet[@account[:index]] [options]</div>
         <ul class="cmd-desc">
           <li><code>--private</code> &mdash; <span data-i18n="opt-private">reveal private keys</span></li>
           <li><code>--mnemonic</code> &mdash; <span data-i18n="opt-reveal-mnemonic">reveal mnemonic phrase</span></li>
@@ -835,22 +830,34 @@ footer a:hover { color: var(--accent); }
             <div class="example-code">$ bitcold wallet show my-wallet --private</div>
           </div>
           <div class="example">
-            <div class="example-label" data-i18n="ex-show-mnemonic">Show wallet with mnemonic phrase</div>
-            <div class="example-code">$ bitcold wallet show my-wallet --mnemonic</div>
+            <div class="example-label" data-i18n="ex-show-acc">Show specific account</div>
+            <div class="example-code">$ bitcold wallet show my-wallet@savings</div>
           </div>
           <div class="example">
-            <div class="example-label" data-i18n="ex-show-both">Show both private keys and mnemonic</div>
-            <div class="example-code">$ bitcold wallet show my-wallet --private --mnemonic</div>
+            <div class="example-label" data-i18n="ex-show-addr">Show specific address details</div>
+            <div class="example-code">$ bitcold wallet show my-wallet@default:5 --private</div>
           </div>
         </details>
       </div>
 
       <div class="cmd-block">
-        <h4>wallet receive &lt;wallet@account&gt;</h4>
-        <div class="cmd-syntax">$ bitcold wallet receive vault@account_0</div>
+        <h4>wallet receive &lt;account-ref&gt;</h4>
+        <div class="cmd-syntax">$ bitcold wallet receive wallet@account[:index] [options]</div>
         <ul class="cmd-desc">
+          <li><code>--change</code> &mdash; <span data-i18n="opt-change">use change chain</span></li>
           <li data-i18n="cmd-receive-d">Display a receive address and its QR code.</li>
         </ul>
+        <details class="cmd-examples">
+          <summary data-i18n="examples">Examples</summary>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-recv-basic">Standard receive address</div>
+            <div class="example-code">$ bitcold wallet receive my-wallet@account_0</div>
+          </div>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-recv-ref">Reference with index</div>
+            <div class="example-code">$ bitcold wallet receive my-wallet@account_0:5</div>
+          </div>
+        </details>
       </div>
 
       <div class="cmd-block">
@@ -892,7 +899,7 @@ footer a:hover { color: var(--accent); }
         <h4>wallet account add &lt;wallet&gt; [account]</h4>
         <div class="cmd-syntax">$ bitcold wallet account add my-wallet savings [options]</div>
         <ul class="cmd-desc">
-          <li><code>--index</code> &mdash; <span data-i18n="opt-index">BIP44 account index</span></li>
+          <li><code>-i, --index</code> &mdash; <span data-i18n="opt-index">BIP84 account index</span></li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
@@ -928,26 +935,26 @@ footer a:hover { color: var(--accent); }
 
       <div class="cmd-block">
         <h4>tx sign</h4>
-        <div class="cmd-syntax">$ bitcold tx sign --from wallet@account --to bc1q... --amount 50000 --fee 1500 --utxo &lt;hash:index:value&gt; [options]</div>
+        <div class="cmd-syntax">$ bitcold tx sign --from wallet@account[:index] --to bc1q... --amount 50000 --fee 1500 --utxo &lt;txid:vout:value&gt; [options]</div>
         <ul class="cmd-desc">
-          <li><code>--from</code> &mdash; <span data-i18n="opt-from">sender as <strong>wallet@account</strong></span></li>
-          <li><code>--to</code> &mdash; <span data-i18n="opt-to">recipient address or <strong>wallet@account</strong> reference</span></li>
+          <li><code>--from</code> &mdash; <span data-i18n="opt-from">sender as <strong>wallet@account[:index]</strong></span></li>
+          <li><code>--to</code> &mdash; <span data-i18n="opt-to">recipient address or <strong>wallet@account[:index]</strong>reference</span></li>
           <li><code>--amount</code> &mdash; <span data-i18n="opt-amount">amount in satoshis</span></li>
           <li><code>--fee</code> &mdash; <span data-i18n="opt-fee">fee in satoshis</span></li>
-          <li><code>--utxo</code> &mdash; <span data-i18n="opt-utxo">UTXO input as <strong>txid:vout:value</strong> (repeatable)</span></li>
+          <li><code>--utxo</code> &mdash; <span data-i18n="opt-utxo">UTXO input as <strong>txid:vout:value</strong>(repeatable)</span></li>
           <li><code>--qr</code> &mdash; <span data-i18n="opt-qr">display signed tx as terminal QR code</span></li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
           <div class="example">
             <div class="example-label" data-i18n="ex-tx-basic">Basic transaction signing</div>
-            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
-  --amount 50000 --fee 1500 \
+            <div class="example-code">$ bitcold tx sign --from my-wallet@account_0 --to bc1q... \
+  --amount 50000 --fee 1000 \
   --utxo abc123...:0:60000</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-tx-multi">Multiple UTXOs</div>
-            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
+            <div class="example-code">$ bitcold tx sign --from my-wallet@account_0 --to bc1q... \
   --amount 1500 --fee 500 \
   --utxo abc123...:0:1000 \
   --utxo def456...:0:500 \
@@ -955,14 +962,14 @@ footer a:hover { color: var(--accent); }
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-tx-qr">Output as QR code for air-gapped transfer</div>
-            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to bc1q... \
-  --amount 50000 --fee 1500 \
+            <div class="example-code">$ bitcold tx sign --from my-wallet@account_0 --to bc1q... \
+  --amount 50000 --fee 1000 \
   --utxo abc123...:0:60000 --qr</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-tx-local">Send to another local wallet</div>
-            <div class="example-code">$ bitcold tx sign --from my-wallet@default --to other-wallet@savings \
-  --amount 50000 --fee 1500 \
+            <div class="example-code">$ bitcold tx sign --from my-wallet@account_0 --to other-wallet@savings \
+  --amount 50000 --fee 1000 \
   --utxo abc123...:0:60000</div>
           </div>
         </details>
@@ -1028,32 +1035,35 @@ const translations = {
     'opt-mlen': 'word count (12 | 15 | 18 | 21 | 24, default 12)',
     'opt-pass': 'BIP39 passphrase for derivation preview only (never saved, for plausible deniability)',
     'opt-show-mnemonic': 'display the mnemonic after creation',
-    'opt-ephemeral': 'generate once, never save to disk',
     'opt-entropy': 'supply your own binary entropy (dice rolls / coin flips)',
     'examples': 'Examples',
     'ex-create-alias': 'Create a wallet with alias',
     'ex-import-pass': 'Import from mnemonic with passphrase',
     'ex-gen-24': 'Generate 24-word mnemonic and display it',
-    'ex-ephemeral': 'Create ephemeral wallet (not saved to disk)',
     'ex-entropy': 'Create from custom entropy (coin flips / dice rolls)',
     'opt-private': 'reveal private keys',
     'opt-reveal-mnemonic': 'reveal mnemonic phrase',
     'ex-show-priv': 'Show wallet with private keys',
-    'ex-show-mnemonic': 'Show wallet with mnemonic phrase',
-    'ex-show-both': 'Show both private keys and mnemonic',
+    'ex-show-acc': 'Show specific account',
+    'ex-show-addr': 'Show specific address details',
     'cmd-list-d': 'List all saved wallets and their accounts.',
     'cmd-rename-d': 'Rename an existing wallet.',
     'opt-yes': 'skip confirmation prompt',
     'ex-remove-conf': 'Remove with confirmation prompt',
     'ex-remove-yes': 'Skip confirmation',
-    'opt-index': 'BIP44 account index',
+    'opt-index': 'BIP84 account index',
     'ex-acc-auto': 'Add account with auto-generated alias',
     'ex-acc-custom': 'Add with custom alias and derivation index',
     'ex-acc-rem-conf': 'Remove with confirmation',
     'ex-acc-rem-yes': 'Skip confirmation',
     'cmd-receive-d': 'Display a receive address and its QR code.',
-    'opt-from': 'sender as <strong>wallet@account</strong>',
-    'opt-to': 'recipient address or <strong>wallet@account</strong> reference',
+    'opt-addr-index': 'address index (default 0)',
+    'opt-change': 'use change chain',
+    'ex-recv-basic': 'Standard receive address',
+    'ex-recv-idx': 'Specific index',
+    'ex-recv-ref': 'Reference with index',
+    'opt-from': 'sender as <strong>wallet@account[:index]</strong>',
+    'opt-to': 'recipient address or <strong>wallet@account[:index]</strong> reference',
     'opt-amount': 'amount in satoshis',
     'opt-fee': 'fee in satoshis',
     'opt-utxo': 'UTXO input as <strong>txid:vout:value</strong> (repeatable)',
@@ -1105,32 +1115,35 @@ const translations = {
     'opt-mlen': '助记词长度 (12 | 15 | 18 | 21 | 24, 默认为 12)',
     'opt-pass': 'BIP39 密语，仅用于派生预览（不会保存至本地，保护可抵赖性）',
     'opt-show-mnemonic': '创建后显示助记词',
-    'opt-ephemeral': '一次性生成，不保存到磁盘',
     'opt-entropy': '提供自定义二进制熵（掷骰子 / 抛硬币）',
     'examples': '示例',
     'ex-create-alias': '使用别名创建钱包',
     'ex-import-pass': '使用助记词和密码导入',
     'ex-gen-24': '生成 24 位助记词并显示',
-    'ex-ephemeral': '创建临时钱包（不保存）',
     'ex-entropy': '从自定义熵创建（掷骰子 / 抛硬币）',
     'opt-private': '显示私钥',
     'opt-reveal-mnemonic': '显示助记词',
     'ex-show-priv': '显示带有私钥的钱包',
-    'ex-show-mnemonic': '显示带有助记词的钱包',
-    'ex-show-both': '同时显示私钥和助记词',
+    'ex-show-acc': '显示特定账户',
+    'ex-show-addr': '显示特定地址详情',
     'cmd-list-d': '列出所有保存的钱包及其账户。',
     'cmd-rename-d': '重命名现有钱包。',
     'opt-yes': '跳过确认提示',
     'ex-remove-conf': '带确认提示的删除',
     'ex-remove-yes': '跳过确认删除',
-    'opt-index': 'BIP44 账户索引',
+    'opt-index': 'BIP84 账户索引',
     'ex-acc-auto': '添加自动生成别名的账户',
     'ex-acc-custom': '添加自定义别名和派生索引的账户',
     'ex-acc-rem-conf': '带确认的账户删除',
     'ex-acc-rem-yes': '跳过确认删除账户',
     'cmd-receive-d': '显示收款地址及其二维码。',
-    'opt-from': '发送者，格式为 <strong>wallet@account</strong>',
-    'opt-to': '接收者地址或 <strong>wallet@account</strong> 引用',
+    'opt-addr-index': '地址索引 (默认为 0)',
+    'opt-change': '使用找零链',
+    'ex-recv-basic': '标准收款地址',
+    'ex-recv-idx': '指定索引',
+    'ex-recv-ref': '带索引的引用',
+    'opt-from': '发送者，格式为 <strong>wallet@account[:index]</strong>',
+    'opt-to': '接收者地址或 <strong>wallet@account[:index]</strong> 引用',
     'opt-amount': '金额（单位：聪）',
     'opt-fee': '手续费（单位：聪）',
     'opt-utxo': 'UTXO 输入，格式为 <strong>txid:vout:value</strong> (可重复)',
@@ -1355,7 +1368,7 @@ const demoCases = [
       { text: '\x1b[1;34m?\x1b[0m Enter a passphrase for the CLI \x1b[90m…\x1b[0m ', delay: 1000 },
       { text: '\x1b[36m*********\x1b[0m\r\n', delay: 400 },
       { text: '\x1b[1;34m?\x1b[0m Enter the wallet "vault" mnemonic passphrase (leave blank to skip) \x1b[90m…\x1b[0m \r\n', delay: 500 },
-      { text: 'bc1qk2j6c5vwa2hqrnqrs6r953paw8ld84ryqg5czq\r\n\r\n', delay: 500 },
+      { text: 'path    m/84\'/0\'/0\'/0/0\n\raddress bc1qk2j6c5vwa2hqrnqrs6r953paw8ld84ryqg5czq\r\n\r\n', delay: 500 },
       { text: '\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2584\u2580\u2588\u0020\u2588\u2580\u0020\u2588\u0020\u2584\u2584\u2584\u0020\u2588\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u2588\u2580\u2580\u2580\u2584\u0020\u2588\u0020\u2588\u2588\u2588\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2588\u0020\u2588\u2580\u2588\u2584\u0020\u2588\u2584\u2584\u2584\u2584\u2584\u2588\r\n\u2584\u0020\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u0020\u2588\u0020\u0020\u2588\u0020\u2584\u2584\u2584\u2584\u2584\r\n\u0020\u2584\u2580\u2584\u2588\u2580\u2584\u2580\u2580\u2580\u0020\u2580\u2588\u2580\u2584\u0020\u2580\u2584\u2580\u2580\u2580\u2580\r\n\u2580\u0020\u2588\u0020\u2580\u2588\u2584\u2588\u2588\u2584\u2584\u2580\u2584\u2588\u2584\u2580\u2580\u2584\u2584\u2584\u2580\u2588\r\n\u0020\u2580\u2584\u0020\u0020\u2588\u2584\u0020\u2584\u2584\u2588\u2588\u0020\u2588\u2584\u2584\u0020\u0020\u2584\u2584\u2580\r\n\u2584\u2584\u2584\u2584\u2584\u2584\u2584\u0020\u2580\u2580\u0020\u0020\u2584\u2584\u0020\u2584\u0020\u2588\u2584\u2588\u2584\u2580\r\n\u2588\u0020\u2584\u2584\u2584\u0020\u2588\u0020\u2588\u2588\u0020\u0020\u0020\u2588\u2584\u2584\u2584\u2588\u2584\u2584\u2584\u2584\r\n\u2588\u0020\u2588\u2588\u2588\u0020\u2588\u0020\u2588\u0020\u2584\u2588\u0020\u2580\u0020\u0020\u2580\u2588\u2584\u2580\u0020\u2588\r\n\u2588\u2584\u2584\u2584\u2584\u2584\u2588\u0020\u2584\u2584\u2580\u0020\u0020\u2584\u0020\u2588\u2580\u2580\u2584\u2584\u2580\u2588\r\n\r\n', delay: 100 }
     ]
   },

@@ -47,7 +47,8 @@ export function isNotNumber(amount: string) {
 }
 
 export function isAddressRef(from: string) {
-  return /@/.test(from) && from.split('@').length === 2
+  // wallet@account or wallet@account:index
+  return /^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(:[0-9]+)?$/.test(from)
 }
 
 export function isNotValidBech32(address: string): boolean {

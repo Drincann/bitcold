@@ -23,7 +23,7 @@ export class Wallet {
     if (this.accounts.has(normalizedAlias)) {
       throw new Error(`Account '${normalizedAlias}' already exists in wallet '${this.alias}'`)
     }
-    const usedIndices = new Set([...this.accounts.values()].map(a => a.index))
+    const usedIndices = new Set([...this.accounts.values()].map(a => a.accountIndex))
     let resolvedIndex: number
     if (index !== undefined) {
       if (!Number.isInteger(index) || index < 0) {

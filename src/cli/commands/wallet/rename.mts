@@ -9,8 +9,8 @@ export const walletRenameCommand = new Command()
   .name('rename')
   .description('Rename a wallet')
 
-  .command('rename <wallet-alias> <new-alias>')
-
+  .argument('<old-alias>', 'Old wallet alias')
+  .argument('<new-alias>', 'New wallet alias')
   .action(withErrorHandler(async (fromWallet: string, toWallet: string, opts, cmd) => {
     await ensureCliLevelSecretInitialized()
       const fromWalletData = await repos.wallet.getWallet(fromWallet)

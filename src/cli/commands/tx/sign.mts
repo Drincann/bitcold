@@ -7,7 +7,7 @@ import { repositories as repos } from '../../../persistence/repository.mjs'
 import { Wallet } from '../../../domain/wallet.mjs'
 import { dereferenceAddress } from '../../utils/wallet-resolver.mjs'
 import { withErrorHandler } from '../../utils/error-handler.mjs'
-import { BtcAddress } from '../../../domain/address.mjs'
+import { BtcAddress, createBtcAddress } from '../../../domain/address.mjs'
 import { calcVSizeFromHex, createTransaction } from '../../../domain/transaction.mjs'
 import { isAddressRef, isNotInt, isNotValidBtcAddressOrRef, isNotValidHex, isNotValidRef } from '../../../utils/validator.mjs'
 
@@ -77,12 +77,15 @@ export const txSignCommand = new Command()
   }))
 
 async function resolveAddress(addressRef: string): Promise<BtcAddress> {
-  return await dereferenceAddress(addressRef)
+  const { account, index } = await dereferenceAddress(addressRef)
+  const keypair = account.deriveAddress(0, index)
+  return createBtcAddress(account.alias, keypair.privateKey, keypair.publicKey, keypair.address)
 }
 
 async function resolveRawAddress(addressOrRef: string): Promise<string> {
   if (isAddressRef(addressOrRef)) {
-    return (await dereferenceAddress(addressOrRef)).address
+    const { account, index } = await dereferenceAddress(addressOrRef)
+    return account.deriveAddress(0, index).address
   }
 
   return addressOrRef

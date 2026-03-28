@@ -4,14 +4,14 @@ import { CliSandbox } from './helpers/cli-sandbox.js';
 const TRUTH_SET_1 = {
   mnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about',
   mainnet: 'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu',
-  regtest: 'bcrt1qcr8te4kr609gcawutmrza0j4xv80jy8zeqchgx',
+  regtest: 'bcrt1q6rz28mcfaxtmd6v789l9rrlrusdprr9pz3cppk',
   entropy: '0'.repeat(128)
 };
 
 const TRUTH_SET_2 = {
   mnemonic: 'night service anxiety work canoe clog obey barely energy tackle rent merit',
   mainnet: 'bc1qvlsew3ys27n29aqvdc5ezq2gdvt8czctw3p983',
-  regtest: 'bcrt1qvlsew3ys27n29aqvdc5ezq2gdvt8czctx7rmtt',
+  regtest: 'bcrt1qdfztqwuhxmsut4xzccfnc5dpayxhq4kjzc6spv',
   // Binary string for TRUTH_SET_2 entropy (exactly 128 bits)
   entropy: '10010101100110001000010000101000011111101100001000011000010101110010010111111000100101000100101000011011101000101101100101000101'
 };
@@ -67,7 +67,7 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
     it('Mainnet: standard bc1q address (Truth Set 1)', async () => {
       await createWallet(sandbox.sandboxDir, 'm1-wallet', TRUTH_SET_1.mnemonic);
       const s = reuseDir(sandbox.sandboxDir);
-      s.run(['wallet', 'show', 'm1-wallet'], { 
+      s.run(['wallet', 'receive', 'm1-wallet@account_0'], { 
         BITCOLD_PASSPHRASE: CLI_PASS,
         BITCOLD_BITCOIN_NETWORK: 'mainnet'
       });
@@ -81,7 +81,7 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
     it('Mainnet: standard bc1q address (Truth Set 2 - Random)', async () => {
       await createWallet(sandbox.sandboxDir, 'm2-wallet', TRUTH_SET_2.mnemonic);
       const s = reuseDir(sandbox.sandboxDir);
-      s.run(['wallet', 'show', 'm2-wallet'], { 
+      s.run(['wallet', 'receive', 'm2-wallet@account_0'], { 
         BITCOLD_PASSPHRASE: CLI_PASS,
         BITCOLD_BITCOIN_NETWORK: 'mainnet'
       });
@@ -95,7 +95,7 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
     it('Regtest: standard bcrt1 address (Truth Set 1)', async () => {
       await createWallet(sandbox.sandboxDir, 'r1-wallet', TRUTH_SET_1.mnemonic);
       const s = reuseDir(sandbox.sandboxDir);
-      s.run(['wallet', 'show', 'r1-wallet'], { 
+      s.run(['wallet', 'receive', 'r1-wallet@account_0'], { 
         BITCOLD_PASSPHRASE: CLI_PASS,
         BITCOLD_BITCOIN_NETWORK: 'regtest'
       });
@@ -109,7 +109,7 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
     it('Regtest: standard bcrt1 address (Truth Set 2 - Random)', async () => {
       await createWallet(sandbox.sandboxDir, 'r2-wallet', TRUTH_SET_2.mnemonic);
       const s = reuseDir(sandbox.sandboxDir);
-      s.run(['wallet', 'show', 'r2-wallet'], { 
+      s.run(['wallet', 'receive', 'r2-wallet@account_0'], { 
         BITCOLD_PASSPHRASE: CLI_PASS,
         BITCOLD_BITCOIN_NETWORK: 'regtest'
       });
@@ -193,7 +193,7 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       expect(r_ls.output).toContain('consist');
 
       const s = reuseDir(sandbox.sandboxDir);
-      s.run(['wallet', 'show', 'consist'], { BITCOLD_PASSPHRASE: CLI_PASS });
+      s.run(['wallet', 'receive', 'consist@account_0'], { BITCOLD_PASSPHRASE: CLI_PASS });
       await s.waitFor('mnemonic passphrase');
       await s.type('\r');
       const r_sh = await s.finish();
@@ -219,15 +219,16 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       await add.type('\r');
       await add.finish();
 
-      const sh = reuseDir(sandbox.sandboxDir);
-      sh.run(['wallet', 'show', 'multi'], { BITCOLD_PASSPHRASE: CLI_PASS });
-      await sh.waitFor('mnemonic passphrase');
-      await sh.type('\r');
-      const r = await sh.finish();
+      const re = reuseDir(sandbox.sandboxDir);
+      re.run(['wallet', 'receive', 'multi@savings'], { 
+        BITCOLD_PASSPHRASE: CLI_PASS,
+        BITCOLD_BITCOIN_NETWORK: 'mainnet'
+      });
+      await re.waitFor('mnemonic passphrase');
+      await re.type('\r');
+      const r = await re.finish();
       
-      expect(r.output).toContain('account_0');
-      expect(r.output).toContain('savings');
-      expect(r.output).toContain('m/84\'/0\'/0\'/0/1'); // path for second account
+      expect(r.output).toContain("m/84'/0'/1'/0/0");
     }, 35000);
 
     it('wallet remove: demands confirmation and deletes data', async () => {

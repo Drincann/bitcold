@@ -9,7 +9,7 @@ export const walletRemoveCommand = new Command()
   .name('remove')
   .description('Remove wallet')
 
-  .command('remove <wallet-alias>')
+  .argument('<wallet-alias>', 'Wallet alias')
   .option('-y --yes', 'Skip confirmation')
 
   .action(async (walletAlias, opts, cmd) => {

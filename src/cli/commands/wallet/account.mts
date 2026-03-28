@@ -30,11 +30,13 @@ function generateNextAccountAlias(accounts: Map<string, Account>): string {
   return name
 }
 
+import { getAccountPath } from '../../../crypto/mnemonic.mjs';
+
 export const walletAccountAddCommand = new Command('add')
-  .description('Add a derived account to an existing wallet')
+  .description('Add a BIP84 account to an existing wallet')
   .argument('<wallet-alias>', 'Wallet alias')
   .argument('[account-alias]', 'Account alias for wallet@alias (omit for account_0, account_1, …)')
-  .option<number>('-i --index <n>', 'BIP44 derivation index (default: smallest unused index from 0)', v => parseInt(v, 10))
+  .option<number>('-i --index <n>', 'BIP84 account index (default: smallest unused index from 0)', v => parseInt(v, 10))
   .action(withErrorHandler(async (walletAlias: string, accountArg: string | undefined, opts: { index?: number }) => {
     await ensureCliLevelSecretInitialized()
 
@@ -46,7 +48,7 @@ export const walletAccountAddCommand = new Command('add')
 
     const indexOpt = opts.index
     if (indexOpt !== undefined && Number.isNaN(indexOpt)) {
-      throw new CliParameterError('Derivation index must be a valid integer')
+      throw new CliParameterError('Account index must be a valid integer')
     }
 
     const wallet = await loadWalletWithBip39PassphrasePrompt(walletData)
@@ -61,7 +63,7 @@ export const walletAccountAddCommand = new Command('add')
     await repos.wallet.updateWallet(await wallet.serialize())
 
     printer.info(`Account '${accountAlias}' added to wallet '${walletAlias}'`)
-    show(wallet, { private: false, mnemonic: false })
+    show(wallet, { mnemonic: false })
   }))
 
 export const walletAccountRemoveCommand = new Command('remove')
@@ -92,7 +94,7 @@ export const walletAccountRemoveCommand = new Command('remove')
       const result = await prompts({
         type: 'confirm',
         name: 'value',
-        message: `Remove account '${trimmedAccount}' from '${walletAlias}' [${addressSummary(account.addresses)}]?`
+        message: `Remove account '${trimmedAccount}' (${getAccountPath(account.accountIndex)}) from '${walletAlias}'?`
       })
       if (result.value !== true) {
         return
@@ -103,7 +105,7 @@ export const walletAccountRemoveCommand = new Command('remove')
     await repos.wallet.updateWallet(await wallet.serialize())
 
     printer.info(`Account '${trimmedAccount}' removed from wallet '${walletAlias}'`)
-    show(wallet, { private: false, mnemonic: false })
+    show(wallet, { mnemonic: false })
   }))
 
 export const walletAccountCommand = new Command('account')
