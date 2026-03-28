@@ -30,8 +30,8 @@ export interface WalletData {
 }
 
 export interface AccountData {
-  alias: string
-  index: number // derive from index
+  alias: string;
+  accountIndex: number; // BIP84 account index (level 3)
 }
 
 export interface Utxo {

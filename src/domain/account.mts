@@ -4,33 +4,38 @@ import { Mnemonic } from "./types.mjs";
 import { AccountData } from "./types.mjs";
 
 export class Account {
-  index: number;
+  mnemonic: Mnemonic;
+  accountIndex: number;
   alias: string;
-  addresses: { BTC: BtcAddress; };
 
-  constructor(mnemonic: Mnemonic, index: number, alias: string) {
-    this.index = index
+  constructor(mnemonic: Mnemonic, accountIndex: number, alias: string) {
+    this.mnemonic = mnemonic
+    this.accountIndex = accountIndex
     this.alias = alias
-    this.addresses = Account.createAddress(mnemonic, index, alias)
   }
 
-  private static createAddress(mnemonic: Mnemonic, index: number, alias: string): {
-    BTC: BtcAddress;
-  } {
-    const keypair = mnemonicUtil.derive(mnemonic, index)
-    return {
-      BTC: createBtcAddress(alias, keypair.privateKey, keypair.publicKey, keypair.address)
-    }
+  public getPublicKey() {
+    const { xpub } = mnemonicUtil.getAccountKeys(this.mnemonic, this.accountIndex)
+    return xpub
+  }
+
+  public getPrivateKey() {
+    const { xprv } = mnemonicUtil.getAccountKeys(this.mnemonic, this.accountIndex)
+    return xprv
+  }
+
+  public deriveAddress(change: number, index: number) {
+    return mnemonicUtil.derive(this.mnemonic, this.accountIndex, change, index)
   }
 
   public static from(mnemonic: Mnemonic, accountData: AccountData): Account {
-    return new Account(mnemonic, accountData.index, accountData.alias)
+    return new Account(mnemonic, accountData.accountIndex, accountData.alias)
   }
 
   public serialize(): AccountData {
     return {
       alias: this.alias,
-      index: this.index
+      accountIndex: this.accountIndex
     }
   }
 }

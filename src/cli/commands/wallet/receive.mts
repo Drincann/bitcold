@@ -1,25 +1,25 @@
 import QRCode from 'qrcode'
 import { Command } from 'commander';
-import { Wallet } from '../../../domain/wallet.mjs';
 import { dereferenceAddress } from '../../utils/wallet-resolver.mjs';
 import { withErrorHandler } from '../../utils/error-handler.mjs';
-import { repositories as repos } from '../../../persistence/repository.mjs';
 import { printer } from '../../output/index.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
-import { CliError } from '../../../error/cli-error.mjs';
 
 export const walletReceiveCommand = new Command()
   .name('receive')
   .description('Display a receive address with QR code')
-
-  .command('receive <address-ref>')
-  .action(withErrorHandler(async (addressRef: string, opts, cmd) => {
+  .argument('<account-ref>', 'Account reference (wallet@account)')
+  .option('--change', 'Use change chain', false)
+  .action(withErrorHandler(async (accountRef: string, opts: { change: boolean }) => {
     await ensureCliLevelSecretInitialized()
 
-    const address = (await dereferenceAddress(addressRef)).address
-    printer.info(address)
+    const { account, index: refIndex } = await dereferenceAddress(accountRef)
+    const derived = account.deriveAddress(opts.change ? 1 : 0, refIndex ?? 0)
+
+    printer.info(`path    ${derived.path}`)
+    printer.info(`address ${derived.address}`)
     printer.info('')
 
-    const qr = await QRCode.toString(address, { type: 'terminal', small: true })
+    const qr = await QRCode.toString(derived.address, { type: 'terminal', small: true })
     printer.info(qr)
   }))

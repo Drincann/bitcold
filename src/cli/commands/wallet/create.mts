@@ -16,7 +16,6 @@ interface WalletCreateParams {
   mnemonicLength: number
   passphrase?: string
   showMnemonic?: boolean
-  ephemeral?: boolean
   entropyBits?: string
 }
 
@@ -29,7 +28,6 @@ export const walletCreateCommand = new Command()
   .option<number>('-l --mnemonic-length <length> ', 'Length of the mnemonic you want to generate', length => parseInt(length), 12)
   .option('-p --passphrase <passphrase>', 'Passphrase for the mnemonic (never saved, used for derivation preview only)')
   .option('-s --show-mnemonic', 'Show the mnemonic after creating the wallet', false)
-  .option('-e --ephemeral', 'Do not save the wallet, only display in console', false)
   .option('-b --entropy-bits <bits>', 'Entropy bits for the wallet, receive 128, 160, 192, 224, 256 bits')
 
   .action(withErrorHandler(async (alias: string | undefined, opts: WalletCreateParams) => {
@@ -40,7 +38,7 @@ export const walletCreateCommand = new Command()
     fix(opts)
     check(opts); assert(opts.entropyBits != undefined || isValidMnemonicLength(opts.mnemonicLength))
 
-    const walletName = opts.ephemeral ? 'ephemeral' : opts.alias ?? await generateNextWalletName()
+    const walletName = opts.alias ?? await generateNextWalletName()
     await checkNameUnique(opts, walletName);
 
     const mnemonic = {
@@ -55,20 +53,11 @@ export const walletCreateCommand = new Command()
       printer.info('Mnemonic: ' + mnemonic.words)
     }
 
-    if (opts.ephemeral) {
-      printer.info(`Ephemeral wallet created! (not saved)`)
-      show(wallet, { private: true, mnemonic: true })
-      return;
-    }
-
     printer.info(`Wallet '${wallet.alias}' created!`)
     await repos.wallet.save(await wallet.serialize())
   }))
 
 async function checkNameUnique(opts: WalletCreateParams, walletName: string) {
-  if (opts.ephemeral) {
-    return
-  }
   const existingWallet = await repos.wallet.getWallet(walletName);
   if (existingWallet !== undefined) {
     throw new CliParameterError(`wallet alias '${walletName}' already exists`);

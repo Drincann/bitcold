@@ -29,10 +29,19 @@ export async function loadWalletWithBip39PassphrasePrompt(data: StoredWalletData
   return Wallet.from(data, passphrase);
 }
 
-export async function dereferenceAddress(addressRef: string): Promise<BtcAddress> {
-  const [walletAlias, accountAlias] = addressRef.split('@')
-  if (!walletAlias || !accountAlias) {
-    throw new CliError(`Invalid address reference '${addressRef}', expected format: wallet@account`)
+import { Account } from '../../domain/account.mjs';
+
+export async function dereferenceAddress(addressRef: string): Promise<{ wallet: Wallet, account: Account, index: number }> {
+  const [walletAlias, rest] = addressRef.split('@')
+  if (!walletAlias || !rest) {
+    throw new CliError(`Invalid account reference '${addressRef}', expected format: wallet@account[:index]`)
+  }
+
+  const [accountAlias, indexStr] = rest.split(':')
+  const index = indexStr ? parseInt(indexStr, 10) : 0
+
+  if (Number.isNaN(index)) {
+    throw new CliError(`Invalid index in reference '${addressRef}'`)
   }
 
   const walletData = await repos.wallet.getWallet(walletAlias)
@@ -46,5 +55,5 @@ export async function dereferenceAddress(addressRef: string): Promise<BtcAddress
     throw new CliError(`Account '${accountAlias}' not found in wallet '${walletAlias}'`)
   }
 
-  return account.addresses.BTC
+  return { wallet, account, index }
 }
