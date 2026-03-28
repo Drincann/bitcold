@@ -1,6 +1,8 @@
 import QRCode from 'qrcode'
 import { Command } from 'commander';
 import { Wallet } from '../../../domain/wallet.mjs';
+import { dereferenceAddress } from '../../utils/wallet-resolver.mjs';
+import { withErrorHandler } from '../../utils/error-handler.mjs';
 import { repositories as repos } from '../../../persistence/repository.mjs';
 import { printer } from '../../output/index.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
@@ -11,19 +13,13 @@ export const walletReceiveCommand = new Command()
   .description('Display a receive address with QR code')
 
   .command('receive <address-ref>')
-  .action(async (addressRef: string, opts, cmd) => {
-    try {
-      await ensureCliLevelSecretInitialized()
+  .action(withErrorHandler(async (addressRef: string, opts, cmd) => {
+    await ensureCliLevelSecretInitialized()
 
-      const address = (await Wallet.dereference(addressRef)).address
-      printer.info(address)
-      printer.info('')
+    const address = (await dereferenceAddress(addressRef)).address
+    printer.info(address)
+    printer.info('')
 
-      const qr = await QRCode.toString(address, { type: 'terminal', small: true })
-      printer.info(qr)
-    } catch (e: unknown) {
-      if (e instanceof CliError) {
-        printer.error(e.message)
-      }
-    }
-  })
+    const qr = await QRCode.toString(address, { type: 'terminal', small: true })
+    printer.info(qr)
+  }))

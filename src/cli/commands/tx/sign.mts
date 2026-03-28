@@ -5,6 +5,8 @@ import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs'
 import { CliError } from '../../../error/cli-error.mjs'
 import { repositories as repos } from '../../../persistence/repository.mjs'
 import { Wallet } from '../../../domain/wallet.mjs'
+import { dereferenceAddress } from '../../utils/wallet-resolver.mjs'
+import { withErrorHandler } from '../../utils/error-handler.mjs'
 import { BtcAddress } from '../../../domain/address.mjs'
 import { calcVSizeFromHex, createTransaction } from '../../../domain/transaction.mjs'
 import { isAddressRef, isNotInt, isNotValidBtcAddressOrRef, isNotValidHex, isNotValidRef } from '../../../utils/validator.mjs'
@@ -45,46 +47,42 @@ export const txSignCommand = new Command()
     return list
   }, [] as string[])
   .option('--qr', 'Display signed transaction as QR code in terminal')
-  .action(async (_: TxSignParameters, cmd) => {
-    try {
-      const opts = check(_)
-      await ensureCliLevelSecretInitialized()
+  .action(withErrorHandler(async (_: TxSignParameters, cmd) => {
+    const opts = check(_)
+    await ensureCliLevelSecretInitialized()
 
-      const sender: BtcAddress = await resolveAddress(opts.from)
-      const receiver: string = await resolveRawAddress(opts.to)
+    const sender: BtcAddress = await resolveAddress(opts.from)
+    const receiver: string = await resolveRawAddress(opts.to)
 
-      const tx = createTransaction({
-        from: sender,
-        to: receiver,
-        amount: opts.amount,
-        fee: { sats: opts.fee },
-        utxos: opts.utxos
-      })
+    const tx = createTransaction({
+      from: sender,
+      to: receiver,
+      amount: opts.amount,
+      fee: { sats: opts.fee },
+      utxos: opts.utxos
+    })
 
-      const signedTx = sender.sign(tx)
-      const vsize = calcVSizeFromHex(signedTx.hex())
-      printer.info('Fee rate: ' + (opts.fee / vsize).toFixed(2) + ' sats/vbyte')
-      printer.info('Signed transaction (' + vsize + ' vbytes):')
-      printer.info('')
-      printer.info(signedTx.hex())
+    const signedTx = sender.sign(tx)
+    const vsize = calcVSizeFromHex(signedTx.hex())
+    printer.info('Fee rate: ' + (opts.fee / vsize).toFixed(2) + ' sats/vbyte')
+    printer.info('Signed transaction (' + vsize + ' vbytes):')
+    printer.info('')
+    printer.info(signedTx.hex())
 
-      if (cmd.opts().qr) {
-        const qr = await QRCode.toString(signedTx.hex(), { type: 'terminal', small: true })
-        printer.info('\n' + qr)
-      }
-
-    } catch (e: unknown) {
-      printer.error((e as any)?.message ?? 'unknown error')
+    if (cmd.opts().qr) {
+      const qr = await QRCode.toString(signedTx.hex(), { type: 'terminal', small: true })
+      printer.info('\n' + qr)
     }
-  })
+
+  }))
 
 async function resolveAddress(addressRef: string): Promise<BtcAddress> {
-  return await Wallet.dereference(addressRef)
+  return await dereferenceAddress(addressRef)
 }
 
 async function resolveRawAddress(addressOrRef: string): Promise<string> {
   if (isAddressRef(addressOrRef)) {
-    return (await Wallet.dereference(addressOrRef)).address
+    return (await dereferenceAddress(addressOrRef)).address
   }
 
   return addressOrRef
@@ -103,6 +101,9 @@ function check(opts: TxSignParameters): CheckedTxSignParameters {
   }
   if (isNotInt(opts.fee)) {
     throw new CliError('Invalid fee \'' + opts.fee + '\'')
+  }
+  if (parseInt(opts.fee) === 0) {
+    printer.warn('warn: Fee is set to 0. This transaction will likely not be mined.')
   }
 
   const utxoArgs: string[] = Array.isArray(opts.utxo) ? opts.utxo : []

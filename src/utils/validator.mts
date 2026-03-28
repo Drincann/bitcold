@@ -1,6 +1,7 @@
 import { bech32 } from 'bech32'
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
+import { getBtcNetwork } from '../env/index.mjs';
 
 bitcoin.initEccLib(ecc);
 
@@ -26,20 +27,10 @@ export function isNotValidBtcAddressOrRef(address?: unknown): boolean {
   }
 
   try {
-    bitcoin.address.toOutputScript(address, bitcoin.networks.bitcoin)
+    bitcoin.address.toOutputScript(address, getBtcNetwork())
     return false
   } catch (e) {
-    try {
-      bitcoin.address.toOutputScript(address, bitcoin.networks.testnet)
-      return false
-    } catch (e2) {
-      try {
-        bitcoin.address.toOutputScript(address, bitcoin.networks.regtest)
-        return false
-      } catch (e3) {
-        return true
-      }
-    }
+    return true
   }
 }
 

@@ -27,7 +27,11 @@ export function getBtcNetwork(): Network {
     networkSelectNotified = true
   }
 
-  return netMappings[definedNetwork.toLowerCase().trim()] ?? networks.bitcoin
+  const net = netMappings[definedNetwork.toLowerCase().trim()]
+  if (!net) {
+    throw new Error(`Invalid BITCOLD_BITCOIN_NETWORK: ${definedNetwork}. Expected one of: ${Object.keys(netMappings).join(', ')}`)
+  }
+  return net
 }
 
 function emptyToUndefined(value: string | undefined): string | undefined {
@@ -60,8 +64,8 @@ async function questionUserToCreateCliPassphrase() {
     message: 'Create a passphrase for the CLI'
   });
 
-  if (isNotString(passphrase)) {
-    throw new CliParameterError('CLI passphrase is required');
+  if (isNotString(passphrase) || passphrase.length < 1) {
+    throw new CliParameterError('CLI passphrase is required and cannot be empty');
   }
 
   const { value: confirmPassphrase } = await prompts({
@@ -84,8 +88,8 @@ async function questionCliPassphrase() {
   });
 
   const cliPassphrase = response.value;
-  if (isNotString(cliPassphrase)) {
-    throw new CliParameterError('CLI passphrase is required');
+  if (isNotString(cliPassphrase) || cliPassphrase.length < 1) {
+    throw new CliParameterError('CLI passphrase is required and cannot be empty');
   }
   return cliPassphrase;
 }
