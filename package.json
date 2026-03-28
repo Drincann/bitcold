@@ -1,6 +1,6 @@
 {
   "name": "bitcold",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.",
   "main": "dist/index.mjs",
   "bin": {
