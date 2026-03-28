@@ -35,11 +35,13 @@ class WalletRepository {
   }
 
   public async remove(walletAlias: string) {
-    await storage.save('wallets', (await storage.load('wallets')).filter(wallet => wallet.alias !== walletAlias))
+    const wallets = await storage.load('wallets') ?? []
+    await storage.save('wallets', wallets.filter(wallet => wallet.alias !== walletAlias))
   }
 
-  public async rename(fromWallet: any, toWallet: any) {
-    await storage.save('wallets', (await storage.load('wallets')).map(wallet => {
+  public async rename(fromWallet: string, toWallet: string) {
+    const wallets = await storage.load('wallets') ?? []
+    await storage.save('wallets', wallets.map(wallet => {
       if (wallet.alias === fromWallet) {
         wallet.alias = toWallet
       }

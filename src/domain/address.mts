@@ -32,7 +32,9 @@ export class BtcAddress implements Address {
 
     for (let i = 0; i < unsigned.tx.inputCount; i++) {
       unsigned.tx.signInput(i, keyPair)
-      unsigned.tx.validateSignaturesOfInput(i, validate)
+      if (!unsigned.tx.validateSignaturesOfInput(i, validate)) {
+        throw new Error(`Signature validation failed for input ${i}`)
+      }
     }
     unsigned.tx.finalizeAllInputs()
 

@@ -13,15 +13,21 @@ export function derivationPath(index: number): string {
   return `${BTC_DERIVATION_PATH_PREFIX}/${index}`
 }
 
+type MnemonicLength = 12 | 15 | 18 | 21 | 24;
+
 export function generate(
-  wordsLengthOrEntropy: 12 | 15 | 18 | 21 | 24 | Buffer,
+  mnemonicLengthOrEntropyBuffer: MnemonicLength | Buffer,
 ): string {
-  if (wordsLengthOrEntropy instanceof Buffer) {
-    const words = mnemoniclib.generateMnemonic(entropyBufferSizeToWords(wordsLengthOrEntropy.length), () => wordsLengthOrEntropy)
-    return words
+  if (mnemonicLengthOrEntropyBuffer instanceof Buffer) {
+    return mnemoniclib.generateMnemonic(mnemonicLengthOrEntropyBuffer.length * 8, () => mnemonicLengthOrEntropyBuffer)
   }
 
-  return mnemoniclib.generateMnemonic(wordsToEntropyBufferSize(wordsLengthOrEntropy as 12 | 15 | 18 | 21 | 24), undefined)
+  const strength = getWordsStrength(mnemonicLengthOrEntropyBuffer as 12 | 15 | 18 | 21 | 24)
+  if (!strength) {
+    throw new Error('Invalid mnemonic length')
+  }
+
+  return mnemoniclib.generateMnemonic(strength)
 }
 
 export function derive(mnemonic: Mnemonic, index: number): {
@@ -39,18 +45,10 @@ export function derive(mnemonic: Mnemonic, index: number): {
   }
 }
 
-function wordsToEntropyBufferSize(length: 12 | 15 | 18 | 21 | 24): number | undefined {
+function getWordsStrength(length: 12 | 15 | 18 | 21 | 24): number | undefined {
   if (length == 12) return 128
   if (length == 15) return 160
   if (length == 18) return 192
   if (length == 21) return 224
   if (length == 24) return 256
-}
-
-function entropyBufferSizeToWords(length: number): number | undefined {
-  if (length == 128) return 12
-  if (length == 160) return 15
-  if (length == 192) return 18
-  if (length == 224) return 21
-  if (length == 256) return 24
 }

@@ -2,11 +2,6 @@ import type { WalletData, StoredWalletData } from "./types.mjs";
 import { identity, toMap } from "../utils/fp.mjs";
 import { Account } from "./account.mjs";
 import { Mnemonic } from "./types.mjs";
-import prompts from "prompts";
-import { CliError, CliParameterError } from "../error/cli-error.mjs";
-import { printer } from "../cli/output/index.mjs";
-import { repositories as repos } from "../persistence/repository.mjs";
-import { BtcAddress } from "./address.mjs";
 
 export class Wallet {
   public mnemonic: Mnemonic
@@ -26,16 +21,16 @@ export class Wallet {
   public addAccount(accountAlias: string, index?: number): void {
     const normalizedAlias = accountAlias.trim()
     if (this.accounts.has(normalizedAlias)) {
-      throw new CliParameterError(`Account '${normalizedAlias}' already exists in wallet '${this.alias}'`)
+      throw new Error(`Account '${normalizedAlias}' already exists in wallet '${this.alias}'`)
     }
     const usedIndices = new Set([...this.accounts.values()].map(a => a.index))
     let resolvedIndex: number
     if (index !== undefined) {
       if (!Number.isInteger(index) || index < 0) {
-        throw new CliParameterError('Derivation index must be a non-negative integer')
+        throw new Error('Derivation index must be a non-negative integer')
       }
       if (usedIndices.has(index)) {
-        throw new CliParameterError(`Derivation index ${index} is already used in this wallet`)
+        throw new Error(`Derivation index ${index} is already used in this wallet`)
       }
       resolvedIndex = index
     } else {
@@ -47,35 +42,15 @@ export class Wallet {
   public removeAccount(accountAlias: string): void {
     const normalizedAlias = accountAlias.trim()
     if (!this.accounts.has(normalizedAlias)) {
-      throw new CliParameterError(`Account '${normalizedAlias}' not found in wallet '${this.alias}'`)
+      throw new Error(`Account '${normalizedAlias}' not found in wallet '${this.alias}'`)
     }
     if (this.accounts.size <= 1) {
-      throw new CliParameterError('Cannot remove the last account in a wallet')
+      throw new Error('Cannot remove the last account in a wallet')
     }
     this.accounts.delete(normalizedAlias)
   }
 
-  public static async from(data: StoredWalletData): Promise<Wallet> {
-    const result = await prompts({
-      type: 'password',
-      name: 'value',
-      message: 'Enter the wallet "' + data.alias + '" mnemonic passphrase (leave blank to skip)'
-    })
-
-    let passphrase = typeof result.value === 'string' && result.value.length > 0 ? result.value : undefined
-
-    if (passphrase !== undefined) {
-      const confirm = await prompts({
-        type: 'password',
-        name: 'value',
-        message: 'Confirm passphrase'
-      })
-
-      if (confirm.value !== passphrase) {
-        throw new CliParameterError('Passphrases do not match')
-      }
-    }
-
+  public static async from(data: StoredWalletData, passphrase?: string): Promise<Wallet> {
     const walletData: WalletData = {
       ...data,
       mnemonic: {
@@ -101,25 +76,7 @@ export class Wallet {
     }
   }
 
-  public static async dereference(addressRef: string): Promise<BtcAddress> {
-    const [walletAlias, accountAlias] = addressRef.split('@')
-    if (!walletAlias || !accountAlias) {
-      throw new CliError(`Invalid address reference '${addressRef}', expected format: wallet@account`)
-    }
 
-    const walletData = await repos.wallet.getWallet(walletAlias)
-    if (walletData === undefined) {
-      throw new CliError(`Wallet '${walletAlias}' not found`)
-    }
-
-    const wallet = await Wallet.from(walletData)
-    const account = wallet.accounts.get(accountAlias)
-    if (account === undefined) {
-      throw new CliError(`Account '${accountAlias}' not found in wallet '${walletAlias}'`)
-    }
-
-    return account.addresses.BTC
-  }
 }
 
 /** Smallest non-negative integer not used by any account (fills gaps before extending). */

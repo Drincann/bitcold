@@ -1,10 +1,11 @@
 import { Command } from 'commander';
 import { Wallet } from '../../../domain/wallet.mjs';
+import { withErrorHandler } from '../../utils/error-handler.mjs';
 import { repositories as repos } from '../../../persistence/repository.mjs';
 import { printer } from '../../output/index.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
-import { CliError } from '../../../error/cli-error.mjs';
 import { BTC_DERIVATION_PATH_PREFIX } from '../../../crypto/mnemonic.mjs';
+import { loadWalletWithBip39PassphrasePrompt } from '../../utils/wallet-resolver.mjs';
 
 export const walletShowCommand = new Command()
   .name('show')
@@ -14,25 +15,18 @@ export const walletShowCommand = new Command()
   .option('-p --private', 'Show private keys')
   .option('-m --mnemonic', 'Show mnemonic')
 
-  .action(async (walletAlias, opts, cmd) => {
-    try {
-      await ensureCliLevelSecretInitialized()
+  .action(withErrorHandler(async (walletAlias, opts, cmd) => {
+    await ensureCliLevelSecretInitialized()
 
-      const walletData = await repos.wallet.getWallet(walletAlias);
-      if (walletData === undefined) {
-        printer.error(`Wallet with alias '${walletAlias}' not found`);
-        return;
-      }
-
-      // No passphrase required
-      const wallet = await Wallet.from(walletData);
-      show(wallet, opts);
-    } catch (e: unknown) {
-      if (e instanceof CliError) {
-        printer.error(e.message)
-      }
+    const walletData = await repos.wallet.getWallet(walletAlias);
+    if (walletData === undefined) {
+      printer.error(`Wallet with alias '${walletAlias}' not found`);
+      return;
     }
-  })
+
+    const wallet = await loadWalletWithBip39PassphrasePrompt(walletData);
+    show(wallet, opts);
+  }))
 
 export function show(wallet: Wallet, opts: { private: boolean, mnemonic: boolean }) {
   printer.info(`Wallet: ${wallet.alias}`);

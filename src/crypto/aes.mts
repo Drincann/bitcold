@@ -23,7 +23,7 @@ export interface EncryptedEnvelopeV1 {
   ciphertext: string
 }
 
-const DEFAULT_SCRYPT: KdfParams = { name: 'scrypt', N: 1 << 15, r: 8, p: 1, keyLength: 32 }
+const DEFAULT_SCRYPT: KdfParams = { name: 'scrypt', N: 1 << 18, r: 8, p: 1, keyLength: 32 }
 const DEFAULT_CIPHER: CipherParams = { name: 'aes-256-gcm', keyLength: 32 }
 
 export async function aesEncrypt(content: string, passphrase: string): Promise<EncryptedEnvelopeV1> {
@@ -79,7 +79,8 @@ export async function deriveKey(password: string, salt: Buffer, kdf: KdfParams):
 }
 
 export function isEnvelopeV1(v: unknown): v is EncryptedEnvelopeV1 {
-  return typeof v === 'object' && v !== null
-    && (v as any).version === 1 && typeof (v as any).kdf === 'object' && typeof (v as any).cipher === 'object'
-    && 'ciphertext' in v && 'salt' in v && 'iv' in v && 'tag' in v
+  if (typeof v !== 'object' || v === null) return false;
+  const obj = v as Record<string, unknown>;
+  return obj.version === 1 && typeof obj.kdf === 'object' && typeof obj.cipher === 'object'
+    && 'ciphertext' in obj && 'salt' in obj && 'iv' in obj && 'tag' in obj;
 }
