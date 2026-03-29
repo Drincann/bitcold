@@ -24,7 +24,7 @@
     "cold-wallet"
   ],
   "author": "drincann",
-  "license": "ISC",
+  "license": "WTFPL",
   "bugs": {
     "url": "https://github.com/Drincann/bitcold/issues"
   },
