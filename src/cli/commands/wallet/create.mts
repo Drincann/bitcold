@@ -6,7 +6,6 @@ import * as mnemonicUtil from '../../../crypto/mnemonic.mjs'
 import assert from 'assert';
 import { Wallet } from '../../../domain/wallet.mjs';
 import { withErrorHandler } from '../../utils/error-handler.mjs';
-import { show } from './show.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { containsWhite, ensureSingleWhiteSpace, isEmpty, isNumber, isString, isValidMnemonicLength, notIn, wordsSizeOf } from '../../../utils/validator.mjs';
 

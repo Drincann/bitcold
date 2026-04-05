@@ -1,5 +1,4 @@
 import { Account } from "../domain/account.mjs";
-import { BtcAddress } from "../domain/address.mjs";
 
 export function accountSummary(accounts: Map<string, Account>) {
   return [...accounts.entries()].map(([alias, account]) => `${alias} ${pubkeySummary(account.getPublicKey())}`).join(', ');

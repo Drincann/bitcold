@@ -4,7 +4,6 @@ import { withErrorHandler } from '../../utils/error-handler.mjs';
 import { printer } from '../../output/index.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { StoredWalletData } from '../../../domain/types.mjs';
-import { CliError } from '../../../error/cli-error.mjs';
 
 export const walletListCommand = new Command()
   .name('list')
