@@ -2,7 +2,6 @@ import prompts from 'prompts';
 import { repositories as repos } from '../../persistence/repository.mjs';
 import { Wallet } from '../../domain/wallet.mjs';
 import { CliError, CliParameterError } from '../../error/cli-error.mjs';
-import { BtcAddress } from '../../domain/address.mjs';
 import type { StoredWalletData } from '../../domain/types.mjs';
 
 export async function loadWalletWithBip39PassphrasePrompt(data: StoredWalletData): Promise<Wallet> {

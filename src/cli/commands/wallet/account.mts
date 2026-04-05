@@ -6,10 +6,9 @@ import { loadWalletWithBip39PassphrasePrompt } from '../../utils/wallet-resolver
 import { withErrorHandler } from '../../utils/error-handler.mjs';
 import type { Account } from '../../../domain/account.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
-import { CliError, CliParameterError } from '../../../error/cli-error.mjs';
+import { CliParameterError } from '../../../error/cli-error.mjs';
 import { show } from './show.mjs';
 import { containsWhite, isEmpty, isString } from '../../../utils/validator.mjs';
-import { addressSummary } from '../../../utils/display.mjs';
 
 function checkAccountAlias(alias: string) {
   if (isString(alias) && isEmpty(alias)) {
