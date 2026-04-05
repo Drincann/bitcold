@@ -11,6 +11,7 @@ export function withErrorHandler<T extends (...args: any[]) => Promise<void>>(ac
       } else {
         printer.error((e as any)?.message ?? 'Unknown error occurred');
       }
+      process.exitCode = 1
     }
   }) as T;
 }
