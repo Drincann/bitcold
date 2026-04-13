@@ -1,3 +1,6 @@
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Drincann/bitcold)
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/banner-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/banner-light.svg">
@@ -6,7 +9,6 @@
 
 A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.
 
-**English** | [简体中文](./README_zh.md)
 
 > **Full documentation, command reference, and examples at [bitcold.dev](https://bitcold.dev)**
 
