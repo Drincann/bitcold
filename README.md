@@ -9,7 +9,6 @@
 
 A lightweight CLI for generating Bitcoin cold wallets, managing keys, and signing transactions offline.
 
-
 > **Full documentation, command reference, and examples at [bitcold.dev](https://bitcold.dev)**
 
 ## Install
@@ -21,13 +20,19 @@ npm install -g bitcold
 ## Quick Start
 
 ```bash
-# Create a wallet
-bitcold wallet create --alias my-wallet
+# Create a wallet with alias 'wallet_0'
+bitcold wallet create wallet_0
 
-# Show wallet details
-bitcold wallet show my-wallet --private --mnemonic
+# Show BIP84 account info
+bitcold wallet show wallet_0@account_0:0 --private --mnemonic
 
-# Sign a transaction
-bitcold tx sign --from my-wallet@default --to bc1q... \
-  --amount 50000 --fee 1500 --utxo <txid:vout:value>
+# Sign a transaction (ouputs a raw transaction QR code for air-gapped environments)
+bitcold tx sign --from my-wallet@account_0:0 --to bc1q... \
+  --amount 50000 --fee 1500 \
+  --utxo <txid:vout:value> \
+  --qr
+
+# Display the address QR code to receive Bitcoin
+bitcold wallet receive wallet_0@account_0:0
 ```
+
