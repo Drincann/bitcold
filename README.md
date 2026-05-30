@@ -27,7 +27,7 @@ bitcold wallet create wallet_0
 bitcold wallet show wallet_0@account_0:0 --private --mnemonic
 
 # Sign a transaction (ouputs a raw transaction QR code for air-gapped environments)
-bitcold tx sign --from my-wallet@account_0:0 --to bc1q... \
+bitcold tx sign --from wallet_0@account_0:0 --to bc1q... \
   --amount 50000 --fee 1500 \
   --utxo <txid:vout:value> \
   --qr
