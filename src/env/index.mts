@@ -11,20 +11,10 @@ const netMappings = {
   'bitcoin': networks.bitcoin,
 } as Record<string, Network>
 
-let networkSelectNotified = false;
 export function getBtcNetwork(): Network {
   const definedNetwork = emptyToUndefined(process.env.BITCOLD_BITCOIN_NETWORK)
   if (definedNetwork === undefined) {
-    if (!networkSelectNotified) {
-      console.warn('warn: using mainnet (BITCOLD_BITCOIN_NETWORK not set)')
-      networkSelectNotified = true
-    }
     return networks.bitcoin
-  }
-
-  if (!networkSelectNotified) {
-    console.warn('warn: using ' + definedNetwork)
-    networkSelectNotified = true
   }
 
   const net = netMappings[definedNetwork.toLowerCase().trim()]
