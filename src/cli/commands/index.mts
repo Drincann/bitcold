@@ -4,8 +4,8 @@ import { walletRenameCommand } from './wallet/rename.mjs';
 import { walletShowCommand } from './wallet/show.mjs';
 import { walletListCommand } from './wallet/list.mjs';
 import { walletRemoveCommand } from './wallet/remove.mjs';
-import { walletAccountCommand } from './wallet/account.mjs';
-import { walletReceiveCommand } from './wallet/receive.mjs';
+import { createWalletAccountCommand, walletAccountCommand } from './wallet/account.mjs';
+import { createWalletReceiveCommand, walletReceiveCommand } from './wallet/receive.mjs';
 
 import { txSignCommand } from './tx/sign.mjs';
 
@@ -26,3 +26,6 @@ export const txCommand = new Command()
   .description('Sign transactions')
 
   .addCommand(txSignCommand)
+
+export const accountCommand = createWalletAccountCommand()
+export const receiveCommand = createWalletReceiveCommand()
