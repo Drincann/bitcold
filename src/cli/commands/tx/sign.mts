@@ -1,7 +1,8 @@
 import QRCode from 'qrcode'
 import { Command } from 'commander'
+import prompts from 'prompts'
 import { printer } from '../../output/index.mjs'
-import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs'
+import { ensureCliLevelSecretInitialized, getBtcNetwork } from '../../../env/index.mjs'
 import { CliError } from '../../../error/cli-error.mjs'
 import { dereferenceAddress } from '../../utils/wallet-resolver.mjs'
 import { withErrorHandler } from '../../utils/error-handler.mjs'
@@ -17,6 +18,7 @@ interface TxSignParameters {
   fee: string
 
   utxo?: string[]
+  yes?: boolean
 
 }
 
@@ -28,7 +30,14 @@ interface CheckedTxSignParameters {
   fee: number
 
   utxos: { hash: string, index: number, value: number }[]
+  yes: boolean
 
+}
+
+interface ResolvedSenderAddress {
+  ref: string
+  path: string
+  address: BtcAddress
 }
 
 export const txSignCommand = new Command()
@@ -44,23 +53,38 @@ export const txSignCommand = new Command()
     list.push(value)
     return list
   }, [] as string[])
+  .option('-y --yes', 'Skip confirmation after transaction preview', false)
   .option('--qr', 'Display signed transaction as QR code in terminal')
   .action(withErrorHandler(async (_: TxSignParameters, cmd) => {
     const opts = check(_)
     await ensureCliLevelSecretInitialized()
 
-    const sender: BtcAddress = await resolveAddress(opts.from)
+    const sender = await resolveSenderAddress(opts.from)
     const receiver: string = await resolveRawAddress(opts.to)
+    const totalInput = opts.utxos.reduce((acc, utxo) => acc + utxo.value, 0)
+    const change = totalInput - opts.fee - opts.amount
+
+    showTransactionPreview({ opts, sender, receiver, totalInput, change })
+    if (!opts.yes) {
+      const answer = await prompts({
+        type: 'confirm',
+        name: 'value',
+        message: 'Sign transaction?'
+      })
+      if (answer.value !== true) {
+        return
+      }
+    }
 
     const tx = createTransaction({
-      from: sender,
+      from: sender.address,
       to: receiver,
       amount: opts.amount,
       fee: { sats: opts.fee },
       utxos: opts.utxos
     })
 
-    const signedTx = sender.sign(tx)
+    const signedTx = sender.address.sign(tx)
     const vsize = calcVSizeFromHex(signedTx.hex())
     printer.info('Fee rate: ' + (opts.fee / vsize).toFixed(2) + ' sats/vbyte')
     printer.info('Signed transaction (' + vsize + ' vbytes):')
@@ -74,10 +98,14 @@ export const txSignCommand = new Command()
 
   }))
 
-async function resolveAddress(addressRef: string): Promise<BtcAddress> {
+async function resolveSenderAddress(addressRef: string): Promise<ResolvedSenderAddress> {
   const { account, index } = await dereferenceAddress(addressRef)
   const keypair = account.deriveAddress(0, index)
-  return createBtcAddress(account.alias, keypair.privateKey, keypair.publicKey, keypair.address)
+  return {
+    ref: addressRef,
+    path: keypair.path,
+    address: createBtcAddress(account.alias, keypair.privateKey, keypair.publicKey, keypair.address)
+  }
 }
 
 async function resolveRawAddress(addressOrRef: string): Promise<string> {
@@ -124,7 +152,8 @@ function check(opts: TxSignParameters): CheckedTxSignParameters {
     to: opts.to,
     amount: parseInt(opts.amount),
     fee: parseInt(opts.fee),
-    utxos
+    utxos,
+    yes: opts.yes === true
   }
 }
 
@@ -146,4 +175,36 @@ function parseUtxo(raw: string): { hash: string, index: number, value: number } 
   }
 
   return { hash, index: parseInt(indexStr), value: parseInt(valueStr) }
+}
+
+function showTransactionPreview(
+  { opts, sender, receiver, totalInput, change }: {
+    opts: CheckedTxSignParameters
+    sender: ResolvedSenderAddress
+    receiver: string
+    totalInput: number
+    change: number
+  }
+) {
+  printer.info('Transaction preview:')
+  printer.info(`  network ${networkName()}`)
+  printer.info(`  from    ${sender.address.address} (${sender.path})`)
+  printer.info(`  to      ${receiver}`)
+  printer.info(`  amount  ${opts.amount} sats`)
+  printer.info(`  fee     ${opts.fee} sats`)
+  printer.info(`  input   ${totalInput} sats`)
+  printer.info(`  change  ${change} sats${change > 0 ? ' -> ' + sender.address.address : ''}`)
+  printer.info('  utxos')
+  opts.utxos.forEach((utxo, i) => {
+    printer.info(`    ${i} ${utxo.hash}:${utxo.index} ${utxo.value} sats`)
+  })
+  printer.info('')
+}
+
+function networkName(): string {
+  const network = getBtcNetwork()
+  if (network.bech32 === 'bc') return 'mainnet'
+  if (network.bech32 === 'tb') return 'testnet'
+  if (network.bech32 === 'bcrt') return 'regtest'
+  return network.bech32 ?? 'unknown'
 }
