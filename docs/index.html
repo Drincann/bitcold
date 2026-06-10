@@ -727,7 +727,7 @@ footer a:hover { color: var(--accent); }
         <div class="step-number">3</div>
         <div class="step-content">
           <h3 data-i18n="qs-sign">Sign a transaction</h3>
-          <div class="step-code">$ bitcold tx sign --from my-wallet@default --to bc1q... --amount 50000 --fee 1500 --utxo &lt;txid:vout:value&gt;</div>
+          <div class="step-code">$ bitcold tx sign --from my-wallet@account_0 --to bc1q... --amount 50000 --fee 1500 --utxo &lt;txid:vout:value&gt;</div>
         </div>
       </div>
     </div>
@@ -745,8 +745,8 @@ footer a:hover { color: var(--accent); }
         <p data-i18n="f1-d">Generate wallets and sign transactions entirely offline. Wallet data is encrypted locally with AES-256-GCM, keys derived via scrypt.</p>
       </div>
       <div class="feature-card">
-        <h3 data-i18n="f2-t">HD Wallet (BIP84)</h3>
-        <p data-i18n="f2-d">Hierarchical deterministic wallets with BIP39 mnemonic phrases and native SegWit (P2WPKH) addresses.</p>
+        <h3 data-i18n="f2-t">Wallet Standards</h3>
+        <p data-i18n="f2-d">BIP39 mnemonic phrases, native SegWit (BIP84) addresses, and SLIP-39 recovery shares.</p>
       </div>
       <div class="feature-card">
         <h3 data-i18n="f3-t">Multi-account</h3>
@@ -754,7 +754,7 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="feature-card">
         <h3 data-i18n="f4-t">Transaction Signing & QR</h3>
-        <p data-i18n="f4-d">Construct and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.</p>
+        <p data-i18n="f4-d">Preview, construct, and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.</p>
       </div>
     </div>
   </div>
@@ -789,7 +789,9 @@ footer a:hover { color: var(--accent); }
           <li><code>--mnemonic-length</code> &mdash; <span data-i18n="opt-mlen">word count (12 | 15 | 18 | 21 | 24, default 12)</span></li>
           <li><code>--passphrase</code> &mdash; <span data-i18n="opt-pass">BIP39 passphrase for derivation preview only (never saved, for plausible deniability)</span></li>
           <li><code>--show-mnemonic</code> &mdash; <span data-i18n="opt-show-mnemonic">display the mnemonic after creation</span></li>
-          <li><code>--entropy-bits</code> &mdash; <span data-i18n="opt-entropy">supply your own binary entropy (dice rolls / coin flips)</span></li>
+          <li><code>-e, --entropy &lt;entropy&gt;</code> &mdash; <span data-i18n="opt-entropy">supply your own entropy as hex (0x...) or binary (0b...)</span></li>
+          <li><code>--from-slip-39</code> &mdash; <span data-i18n="opt-from-slip39">recover from SLIP-39 shares</span></li>
+          <li><code>--share &lt;share&gt;</code> &mdash; <span data-i18n="opt-share">provide a SLIP-39 share (repeatable; prompts or stdin when omitted)</span></li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
@@ -806,8 +808,20 @@ footer a:hover { color: var(--accent); }
             <div class="example-code">$ bitcold wallet create secure-wallet --mnemonic-length 24 --show-mnemonic</div>
           </div>
           <div class="example">
-            <div class="example-label" data-i18n="ex-entropy">Create from custom entropy (coin flips / dice rolls)</div>
-            <div class="example-code">$ bitcold wallet create dice-wallet --entropy-bits 10110100... # 128/256 bits</div>
+            <div class="example-label" data-i18n="ex-entropy">Create from custom entropy</div>
+            <div class="example-code">$ bitcold wallet create dice-wallet -e 0x339610718cf57261ad03a0590742dae8</div>
+          </div>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-entropy-bin">Create from binary entropy</div>
+            <div class="example-code">$ bitcold wallet create coin-wallet --entropy 0b10110100...</div>
+          </div>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-create-slip39">Recover interactively from SLIP-39 shares</div>
+            <div class="example-code">$ bitcold wallet create restored-wallet --from-slip-39</div>
+          </div>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-create-slip39-stdin">Recover from SLIP-39 shares via stdin</div>
+            <div class="example-code">$ printf '%s\n%s\n' "$SHARE_1" "$SHARE_2" | bitcold wallet create restored-wallet --from-slip-39</div>
           </div>
         </details>
         <div class="security-note">
@@ -820,8 +834,12 @@ footer a:hover { color: var(--accent); }
         <h4>wallet show &lt;alias-or-address-ref&gt;</h4>
         <div class="cmd-syntax">$ bitcold wallet show wallet[@account[:index]] [options]</div>
         <ul class="cmd-desc">
-          <li><code>--private</code> &mdash; <span data-i18n="opt-private">reveal private keys</span></li>
-          <li><code>--mnemonic</code> &mdash; <span data-i18n="opt-reveal-mnemonic">reveal mnemonic phrase</span></li>
+          <li><code>-p, --private</code> &mdash; <span data-i18n="opt-private">reveal private keys</span></li>
+          <li><code>-m, --mnemonic</code> &mdash; <span data-i18n="opt-reveal-mnemonic">reveal mnemonic phrase</span></li>
+          <li><code>-e, --entropy</code> &mdash; <span data-i18n="opt-show-entropy">reveal mnemonic entropy as hexadecimal</span></li>
+          <li><code>--slip-39</code> &mdash; <span data-i18n="opt-slip39">show SLIP-39 shares for the wallet mnemonic</span></li>
+          <li><code>--threshold &lt;n&gt;</code> &mdash; <span data-i18n="opt-threshold">SLIP-39 recovery threshold</span></li>
+          <li><code>--shares &lt;n&gt;</code> &mdash; <span data-i18n="opt-shares">SLIP-39 share count</span></li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
@@ -835,27 +853,36 @@ footer a:hover { color: var(--accent); }
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-show-addr">Show specific address details</div>
-            <div class="example-code">$ bitcold wallet show my-wallet@default:5 --private</div>
+            <div class="example-code">$ bitcold wallet show my-wallet@account_0:5 --private</div>
+          </div>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-show-entropy">Show entropy and mnemonic</div>
+            <div class="example-code">$ bitcold wallet show my-wallet -e --mnemonic</div>
+          </div>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-show-slip39">Show SLIP-39 shares</div>
+            <div class="example-code">$ bitcold wallet show my-wallet --slip-39 --threshold 2 --shares 3</div>
           </div>
         </details>
       </div>
 
       <div class="cmd-block">
-        <h4>wallet receive &lt;account-ref&gt;</h4>
-        <div class="cmd-syntax">$ bitcold wallet receive wallet@account[:index] [options]</div>
+        <h4>wallet receive / receive &lt;account-ref&gt;</h4>
+        <div class="cmd-syntax">$ bitcold receive wallet@account[:index] [options]</div>
         <ul class="cmd-desc">
           <li><code>--change</code> &mdash; <span data-i18n="opt-change">use change chain</span></li>
           <li data-i18n="cmd-receive-d">Display a receive address and its QR code.</li>
+          <li data-i18n="cmd-receive-shortcut">Shortcut for <code>bitcold wallet receive</code>.</li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
           <div class="example">
             <div class="example-label" data-i18n="ex-recv-basic">Standard receive address</div>
-            <div class="example-code">$ bitcold wallet receive my-wallet@account_0</div>
+            <div class="example-code">$ bitcold receive my-wallet@account_0</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-recv-ref">Reference with index</div>
-            <div class="example-code">$ bitcold wallet receive my-wallet@account_0:5</div>
+            <div class="example-code">$ bitcold receive my-wallet@account_0:5</div>
           </div>
         </details>
       </div>
@@ -896,39 +923,41 @@ footer a:hover { color: var(--accent); }
       </div>
 
       <div class="cmd-block">
-        <h4>wallet account add &lt;wallet&gt; [account]</h4>
-        <div class="cmd-syntax">$ bitcold wallet account add my-wallet savings [options]</div>
+        <h4>wallet account add / account add &lt;wallet&gt; [account]</h4>
+        <div class="cmd-syntax">$ bitcold account add my-wallet savings [options]</div>
         <ul class="cmd-desc">
           <li><code>-i, --index</code> &mdash; <span data-i18n="opt-index">BIP84 account index</span></li>
+          <li data-i18n="cmd-account-shortcut">Shortcut for <code>bitcold wallet account</code>.</li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
           <div class="example">
             <div class="example-label" data-i18n="ex-acc-auto">Add account with auto-generated alias</div>
-            <div class="example-code">$ bitcold wallet account add my-wallet</div>
+            <div class="example-code">$ bitcold account add my-wallet</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-acc-custom">Add with custom alias and derivation index</div>
-            <div class="example-code">$ bitcold wallet account add my-wallet savings --index 5</div>
+            <div class="example-code">$ bitcold account add my-wallet savings --index 5</div>
           </div>
         </details>
       </div>
 
       <div class="cmd-block">
-        <h4>wallet account remove &lt;wallet&gt; &lt;account&gt;</h4>
-        <div class="cmd-syntax">$ bitcold wallet account remove my-wallet savings [options]</div>
+        <h4>wallet account remove / account remove &lt;wallet&gt; &lt;account&gt;</h4>
+        <div class="cmd-syntax">$ bitcold account remove my-wallet savings [options]</div>
         <ul class="cmd-desc">
           <li><code>--yes</code> &mdash; <span data-i18n="opt-yes">skip confirmation prompt</span></li>
+          <li data-i18n="cmd-account-shortcut">Shortcut for <code>bitcold wallet account</code>.</li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
           <div class="example">
             <div class="example-label" data-i18n="ex-acc-rem-conf">Remove with confirmation</div>
-            <div class="example-code">$ bitcold wallet account remove my-wallet savings</div>
+            <div class="example-code">$ bitcold account remove my-wallet savings</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-acc-rem-yes">Skip confirmation</div>
-            <div class="example-code">$ bitcold wallet account remove my-wallet savings --yes</div>
+            <div class="example-code">$ bitcold account remove my-wallet savings --yes</div>
           </div>
         </details>
       </div>
@@ -938,11 +967,13 @@ footer a:hover { color: var(--accent); }
         <div class="cmd-syntax">$ bitcold tx sign --from wallet@account[:index] --to bc1q... --amount 50000 --fee 1500 --utxo &lt;txid:vout:value&gt; [options]</div>
         <ul class="cmd-desc">
           <li><code>--from</code> &mdash; <span data-i18n="opt-from">sender as <strong>wallet@account[:index]</strong></span></li>
-          <li><code>--to</code> &mdash; <span data-i18n="opt-to">recipient address or <strong>wallet@account[:index]</strong>reference</span></li>
+          <li><code>--to</code> &mdash; <span data-i18n="opt-to">recipient address or <strong>wallet@account[:index]</strong> reference</span></li>
           <li><code>--amount</code> &mdash; <span data-i18n="opt-amount">amount in satoshis</span></li>
           <li><code>--fee</code> &mdash; <span data-i18n="opt-fee">fee in satoshis</span></li>
-          <li><code>--utxo</code> &mdash; <span data-i18n="opt-utxo">UTXO input as <strong>txid:vout:value</strong>(repeatable)</span></li>
+          <li><code>--utxo</code> &mdash; <span data-i18n="opt-utxo">UTXO input as <strong>txid:vout:value</strong> (repeatable)</span></li>
           <li><code>--qr</code> &mdash; <span data-i18n="opt-qr">display signed tx as terminal QR code</span></li>
+          <li><code>-y, --yes</code> &mdash; <span data-i18n="opt-tx-yes">skip confirmation after transaction preview</span></li>
+          <li data-i18n="cmd-tx-preview">Shows a transaction preview before signing.</li>
         </ul>
         <details class="cmd-examples">
           <summary data-i18n="examples">Examples</summary>
@@ -965,6 +996,12 @@ footer a:hover { color: var(--accent); }
             <div class="example-code">$ bitcold tx sign --from my-wallet@account_0 --to bc1q... \
   --amount 50000 --fee 1000 \
   --utxo abc123...:0:60000 --qr</div>
+          </div>
+          <div class="example">
+            <div class="example-label" data-i18n="ex-tx-yes">Skip the preview confirmation</div>
+            <div class="example-code">$ bitcold tx sign -y --from my-wallet@account_0 --to bc1q... \
+  --amount 50000 --fee 1000 \
+  --utxo abc123...:0:60000</div>
           </div>
           <div class="example">
             <div class="example-label" data-i18n="ex-tx-local">Send to another local wallet</div>
@@ -1017,12 +1054,12 @@ const translations = {
     'qs-loading': 'Connecting to terminal...',
     'f1-t': 'Offline-first & Encrypted',
     'f1-d': 'Generate wallets and sign transactions entirely offline. Wallet data is <strong>encrypted locally in <code>~/.bitcold/</code></strong> with AES-256-GCM.',
-    'f2-t': 'HD Wallet (BIP84)',
-    'f2-d': 'Hierarchical deterministic wallets with BIP39 mnemonic phrases and native SegWit (P2WPKH) addresses.',
+    'f2-t': 'Wallet Standards',
+    'f2-d': 'BIP39 mnemonic phrases, native SegWit (BIP84) addresses, and SLIP-39 recovery shares.',
     'f3-t': 'Multi-account',
     'f3-d': 'Derive multiple accounts per wallet with custom aliases and independent derivation indices.',
     'f4-t': 'Transaction Signing & QR',
-    'f4-d': 'Construct and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.',
+    'f4-d': 'Preview, construct, and sign raw Bitcoin transactions with full UTXO control. Export signed tx as terminal QR codes for air-gapped transfer.',
     'doc-wm-t': 'Wallet Management',
     'doc-wm-d': 'Create, import, view, rename, and delete wallets. Manage multiple derived accounts per wallet with custom aliases and derivation indices.',
     'doc-tx-t': 'Transactions',
@@ -1035,17 +1072,28 @@ const translations = {
     'opt-mlen': 'word count (12 | 15 | 18 | 21 | 24, default 12)',
     'opt-pass': 'BIP39 passphrase for derivation preview only (never saved, for plausible deniability)',
     'opt-show-mnemonic': 'display the mnemonic after creation',
-    'opt-entropy': 'supply your own binary entropy (dice rolls / coin flips)',
+    'opt-entropy': 'supply your own entropy as hex (0x...) or binary (0b...)',
+    'opt-from-slip39': 'recover from SLIP-39 shares',
+    'opt-share': 'provide a SLIP-39 share (repeatable; prompts or stdin when omitted)',
     'examples': 'Examples',
     'ex-create-alias': 'Create a wallet with alias',
     'ex-import-pass': 'Import from mnemonic with passphrase',
     'ex-gen-24': 'Generate 24-word mnemonic and display it',
-    'ex-entropy': 'Create from custom entropy (coin flips / dice rolls)',
+    'ex-entropy': 'Create from custom entropy',
+    'ex-entropy-bin': 'Create from binary entropy',
+    'ex-create-slip39': 'Recover interactively from SLIP-39 shares',
+    'ex-create-slip39-stdin': 'Recover from SLIP-39 shares via stdin',
     'opt-private': 'reveal private keys',
     'opt-reveal-mnemonic': 'reveal mnemonic phrase',
+    'opt-show-entropy': 'reveal mnemonic entropy as hexadecimal',
+    'opt-slip39': 'show SLIP-39 shares for the wallet mnemonic',
+    'opt-threshold': 'SLIP-39 recovery threshold',
+    'opt-shares': 'SLIP-39 share count',
     'ex-show-priv': 'Show wallet with private keys',
     'ex-show-acc': 'Show specific account',
     'ex-show-addr': 'Show specific address details',
+    'ex-show-entropy': 'Show entropy and mnemonic',
+    'ex-show-slip39': 'Show SLIP-39 shares',
     'cmd-list-d': 'List all saved wallets and their accounts.',
     'cmd-rename-d': 'Rename an existing wallet.',
     'opt-yes': 'skip confirmation prompt',
@@ -1057,6 +1105,8 @@ const translations = {
     'ex-acc-rem-conf': 'Remove with confirmation',
     'ex-acc-rem-yes': 'Skip confirmation',
     'cmd-receive-d': 'Display a receive address and its QR code.',
+    'cmd-receive-shortcut': 'Shortcut for <code>bitcold wallet receive</code>.',
+    'cmd-account-shortcut': 'Shortcut for <code>bitcold wallet account</code>.',
     'opt-addr-index': 'address index (default 0)',
     'opt-change': 'use change chain',
     'ex-recv-basic': 'Standard receive address',
@@ -1068,9 +1118,12 @@ const translations = {
     'opt-fee': 'fee in satoshis',
     'opt-utxo': 'UTXO input as <strong>txid:vout:value</strong> (repeatable)',
     'opt-qr': 'display signed tx as terminal QR code',
+    'opt-tx-yes': 'skip confirmation after transaction preview',
+    'cmd-tx-preview': 'Shows a transaction preview before signing.',
     'ex-tx-basic': 'Basic transaction signing',
     'ex-tx-multi': 'Multiple UTXOs',
     'ex-tx-qr': 'Output as QR code for air-gapped transfer',
+    'ex-tx-yes': 'Skip the preview confirmation',
     'ex-tx-local': 'Send to another local wallet',
     'doc-config': 'Configuration',
     'cfg-net-main': 'mainnet',
@@ -1097,12 +1150,12 @@ const translations = {
     'qs-loading': '正在连接终端...',
     'f1-t': '离线优先 & 加密存储',
     'f1-d': '完全离线生成钱包和签署交易。钱包数据<strong>本地加密存储在 <code>~/.bitcold/</code></strong>，使用 AES-256-GCM，密钥通过 scrypt 派生。',
-    'f2-t': '分层确定性钱包 (BIP84)',
-    'f2-d': '支持 BIP39 助记词和原生隔离见证 (P2WPKH) 地址的分层确定性钱包。',
+    'f2-t': '钱包标准',
+    'f2-d': '支持 BIP39 助记词、原生隔离见证 (BIP84) 地址和 SLIP-39 恢复片段。',
     'f3-t': '多账户支持',
     'f3-d': '每个钱包可以派生多个账户，支持自定义别名和独立的派生索引。',
     'f4-t': '交易签署 & QR 码',
-    'f4-d': '构造并签署原始比特币交易，完全控制 UTXO。支持将签署后的交易导出为终端 QR 码，实现物理隔离传输。',
+    'f4-d': '预览、构造并签署原始比特币交易，完全控制 UTXO。支持将签署后的交易导出为终端 QR 码，实现物理隔离传输。',
     'doc-wm-t': '钱包管理',
     'doc-wm-d': '创建、导入、查看、重命名和删除钱包。管理每个钱包下派生的多个账户，支持自定义别名和派生索引。',
     'doc-tx-t': '交易操作',
@@ -1115,17 +1168,28 @@ const translations = {
     'opt-mlen': '助记词长度 (12 | 15 | 18 | 21 | 24, 默认为 12)',
     'opt-pass': 'BIP39 密语，仅用于派生预览（不会保存至本地，保护可抵赖性）',
     'opt-show-mnemonic': '创建后显示助记词',
-    'opt-entropy': '提供自定义二进制熵（掷骰子 / 抛硬币）',
+    'opt-entropy': '提供自定义熵，支持十六进制 (0x...) 或二进制 (0b...)',
+    'opt-from-slip39': '从 SLIP-39 恢复片段恢复钱包',
+    'opt-share': '提供 SLIP-39 恢复片段（可重复；省略时使用交互提示或 stdin）',
     'examples': '示例',
     'ex-create-alias': '使用别名创建钱包',
     'ex-import-pass': '使用助记词和密码导入',
     'ex-gen-24': '生成 24 位助记词并显示',
-    'ex-entropy': '从自定义熵创建（掷骰子 / 抛硬币）',
+    'ex-entropy': '从自定义熵创建',
+    'ex-entropy-bin': '从二进制熵创建',
+    'ex-create-slip39': '通过交互提示从 SLIP-39 恢复片段恢复',
+    'ex-create-slip39-stdin': '通过 stdin 从 SLIP-39 恢复片段恢复',
     'opt-private': '显示私钥',
     'opt-reveal-mnemonic': '显示助记词',
+    'opt-show-entropy': '以十六进制显示助记词熵',
+    'opt-slip39': '显示钱包助记词对应的 SLIP-39 恢复片段',
+    'opt-threshold': '恢复钱包所需的最少恢复片段数量',
+    'opt-shares': '生成的恢复片段总数量',
     'ex-show-priv': '显示带有私钥的钱包',
     'ex-show-acc': '显示特定账户',
     'ex-show-addr': '显示特定地址详情',
+    'ex-show-entropy': '显示熵和助记词',
+    'ex-show-slip39': '显示 SLIP-39 恢复片段',
     'cmd-list-d': '列出所有保存的钱包及其账户。',
     'cmd-rename-d': '重命名现有钱包。',
     'opt-yes': '跳过确认提示',
@@ -1137,6 +1201,8 @@ const translations = {
     'ex-acc-rem-conf': '带确认的账户删除',
     'ex-acc-rem-yes': '跳过确认删除账户',
     'cmd-receive-d': '显示收款地址及其二维码。',
+    'cmd-receive-shortcut': '<code>bitcold wallet receive</code> 的快捷命令。',
+    'cmd-account-shortcut': '<code>bitcold wallet account</code> 的快捷命令。',
     'opt-addr-index': '地址索引 (默认为 0)',
     'opt-change': '使用找零链',
     'ex-recv-basic': '标准收款地址',
@@ -1148,9 +1214,12 @@ const translations = {
     'opt-fee': '手续费（单位：聪）',
     'opt-utxo': 'UTXO 输入，格式为 <strong>txid:vout:value</strong> (可重复)',
     'opt-qr': '在终端显示签署后交易的 QR 码',
+    'opt-tx-yes': '交易预览后跳过确认提示',
+    'cmd-tx-preview': '签署前会展示交易预览。',
     'ex-tx-basic': '基础交易签署',
     'ex-tx-multi': '多个 UTXO 签署',
     'ex-tx-qr': '导出为 QR 码用于物理隔离传输',
+    'ex-tx-yes': '跳过预览确认',
     'ex-tx-local': '发送到另一个本地钱包',
     'doc-config': '配置参数',
     'cfg-net-main': 'mainnet',

@@ -25,7 +25,7 @@ bitcold wallet create wallet_0
 # 显示 BIP84 account 信息
 bitcold wallet show wallet_0@account_0:0 --private --mnemonic
 
-# 签署交易（为隔离网络环境输出 raw transaction 二维码）
+# 签署交易（预览交易并输出 raw transaction 二维码）
 bitcold tx sign --from wallet_0@account_0:0 --to bc1q... \
   --amount 50000 --fee 1500 \
   --utxo <txid:vout:value> \
