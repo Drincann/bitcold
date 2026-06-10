@@ -8,6 +8,7 @@ import { Wallet } from '../../../domain/wallet.mjs';
 import { withErrorHandler } from '../../utils/error-handler.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { containsWhite, ensureSingleWhiteSpace, isEmpty, isNumber, isString, isValidMnemonicLength, notIn, wordsSizeOf } from '../../../utils/validator.mjs';
+import { recoverMnemonicFromSlip39Shares } from '../../../crypto/slip39.mjs';
 
 interface WalletCreateParams {
   alias?: string
@@ -16,6 +17,8 @@ interface WalletCreateParams {
   passphrase?: string
   showMnemonic?: boolean
   entropy?: string
+  fromSlip39?: boolean
+  share?: string[]
 }
 
 export const walletCreateCommand = new Command()
@@ -28,6 +31,12 @@ export const walletCreateCommand = new Command()
   .option('-p --passphrase <passphrase>', 'Passphrase for the mnemonic (never saved, used for derivation preview only)')
   .option('-s --show-mnemonic', 'Show the mnemonic after creating the wallet', false)
   .option('-e --entropy <entropy>', 'Entropy for the wallet, use hex (0x...) or binary (0b...), 128/160/192/224/256 bits')
+  .option('--from-slip-39', 'Create a wallet from SLIP-39 shares', false)
+  .option('--share <share>', 'SLIP-39 share, can be specified multiple times', (value: string, previous: string[]) => {
+    const list = Array.isArray(previous) ? previous : []
+    list.push(value)
+    return list
+  }, [] as string[])
 
   .action(withErrorHandler(async (alias: string | undefined, opts: WalletCreateParams) => {
     if (alias) {
@@ -35,13 +44,13 @@ export const walletCreateCommand = new Command()
     }
     await ensureCliLevelSecretInitialized()
     fix(opts)
-    check(opts); assert(opts.entropy != undefined || isValidMnemonicLength(opts.mnemonicLength))
+    check(opts); assert(opts.fromSlip39 || opts.entropy != undefined || isValidMnemonicLength(opts.mnemonicLength))
 
     const walletName = opts.alias ?? await generateNextWalletName()
     await checkNameUnique(opts, walletName);
 
     const mnemonic = {
-      words: opts.mnemonic ?? mnemonicUtil.generate(toEntropyBuffer(opts.entropy) as Buffer | undefined ?? opts.mnemonicLength as 12 | 15 | 18 | 21 | 24),
+      words: resolveMnemonicWords(opts),
       passphrase: opts.passphrase
     }
 
@@ -83,11 +92,28 @@ function toEntropyBuffer(entropy?: string): Buffer | undefined {
 
 function check(opts: WalletCreateParams) {
   checkWalletAlias(opts.alias)
+  checkSlip39Options(opts)
   checkMnemonic(opts.mnemonic)
   if (opts.entropy != undefined) {
     checkEntropy(opts.entropy)
   } else {
     checkMnemonicLengthToGenerate(opts.mnemonicLength)
+  }
+}
+
+function checkSlip39Options(opts: WalletCreateParams) {
+  const shares = opts.share ?? []
+  if (!opts.fromSlip39 && shares.length > 0) {
+    throw new CliParameterError('--share requires --from-slip-39')
+  }
+  if (!opts.fromSlip39) {
+    return
+  }
+  if (opts.mnemonic !== undefined || opts.entropy !== undefined) {
+    throw new CliParameterError('--from-slip-39 cannot be used with --mnemonic or --entropy')
+  }
+  if (shares.length === 0) {
+    throw new CliParameterError('--from-slip-39 requires at least one --share')
   }
 }
 
@@ -150,6 +176,18 @@ function fix(opts: WalletCreateParams) {
   if (typeof opts.entropy === 'string') {
     opts.entropy = opts.entropy.trim()
   }
+
+  if (Array.isArray(opts.share)) {
+    opts.share = opts.share.map(share => ensureSingleWhiteSpace(share.trim()))
+  }
+}
+
+function resolveMnemonicWords(opts: WalletCreateParams): string {
+  if (opts.fromSlip39) {
+    return recoverMnemonicFromSlip39Shares(opts.share ?? [])
+  }
+
+  return opts.mnemonic ?? mnemonicUtil.generate(toEntropyBuffer(opts.entropy) as Buffer | undefined ?? opts.mnemonicLength as 12 | 15 | 18 | 21 | 24)
 }
 
 function entropyBitLength(entropy: string): number | undefined {
