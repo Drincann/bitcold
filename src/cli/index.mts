@@ -1,5 +1,5 @@
 import { Command } from 'commander';
-import { txCommand, walletCommand } from './commands/index.mjs';
+import { accountCommand, receiveCommand, txCommand, walletCommand } from './commands/index.mjs';
 
 export const program = new Command()
   .name('bitcold')
@@ -7,4 +7,6 @@ export const program = new Command()
   .version('alpha')
 
   .addCommand(walletCommand)
-  .addCommand(txCommand);
+  .addCommand(txCommand)
+  .addCommand(accountCommand)
+  .addCommand(receiveCommand);

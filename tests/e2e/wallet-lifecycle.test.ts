@@ -231,6 +231,40 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       expect(r.output).toContain("m/84'/0'/1'/0/0");
     }, 35000);
 
+    it('top-level account alias matches wallet account add behavior', async () => {
+      await createWallet(sandbox.sandboxDir, 'alias-account');
+
+      const add = reuseDir(sandbox.sandboxDir);
+      add.run(['account', 'add', 'alias-account', 'vault'], { BITCOLD_PASSPHRASE: CLI_PASS });
+      await add.waitFor('mnemonic passphrase');
+      await add.type('\r');
+      const added = await add.finish();
+      expect(added.output).toContain("Account 'vault' added to wallet 'alias-account'");
+
+      const ls = reuseDir(sandbox.sandboxDir);
+      ls.run(['wallet', 'list'], { BITCOLD_PASSPHRASE: CLI_PASS });
+      const listed = await ls.finish();
+      expect(listed.output).toContain('alias-account  [account_0, vault]');
+    }, 35000);
+
+    it('top-level receive alias matches wallet receive behavior', async () => {
+      await createWallet(sandbox.sandboxDir, 'alias-receive');
+
+      const walletReceive = reuseDir(sandbox.sandboxDir);
+      walletReceive.run(['wallet', 'receive', 'alias-receive@account_0'], { BITCOLD_PASSPHRASE: CLI_PASS });
+      await walletReceive.waitFor('mnemonic passphrase');
+      await walletReceive.type('\r');
+      const walletOutput = await walletReceive.finish();
+
+      const topLevelReceive = reuseDir(sandbox.sandboxDir);
+      topLevelReceive.run(['receive', 'alias-receive@account_0'], { BITCOLD_PASSPHRASE: CLI_PASS });
+      await topLevelReceive.waitFor('mnemonic passphrase');
+      await topLevelReceive.type('\r');
+      const aliasOutput = await topLevelReceive.finish();
+
+      expect(extractAddress(aliasOutput.output)).toBe(extractAddress(walletOutput.output));
+    }, 35000);
+
     it('wallet remove: demands confirmation and deletes data', async () => {
       await createWallet(sandbox.sandboxDir, 'dead-wallet');
       
