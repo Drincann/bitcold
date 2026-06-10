@@ -217,9 +217,15 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       expect(shares).toHaveLength(3);
 
       const restore = reuseDir(sandbox.sandboxDir);
-      restore.run(['wallet', 'create', 'slip-restored', '--from-slip-39', '--share', shares[0], '--share', shares[2]], {
+      restore.run(['wallet', 'create', 'slip-restored', '--from-slip-39'], {
         BITCOLD_PASSPHRASE: CLI_PASS
       });
+      await restore.waitFor('Enter SLIP-39 share 1');
+      await restore.type(shares[0] + '\r');
+      await restore.waitFor('Enter SLIP-39 share 2');
+      await restore.type(shares[2] + '\r');
+      await restore.waitFor('Enter SLIP-39 share 3');
+      await restore.type('\r');
       const restored = await restore.finish();
       expect(restored.exitCode).toBe(0);
 
