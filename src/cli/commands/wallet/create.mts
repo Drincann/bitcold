@@ -34,9 +34,7 @@ export const walletCreateCommand = new Command()
   .option('-e --entropy <entropy>', 'Entropy for the wallet, use hex (0x...) or binary (0b...), 128/160/192/224/256 bits')
   .option('--from-slip-39', 'Create a wallet from SLIP-39 shares', false)
   .option('--share <share>', 'SLIP-39 share, can be specified multiple times (interactive prompt is used when omitted)', (value: string, previous: string[]) => {
-    const list = Array.isArray(previous) ? previous : []
-    list.push(value)
-    return list
+    return [...(Array.isArray(previous) ? previous : []), value]
   }, [] as string[])
 
   .action(withErrorHandler(async (alias: string | undefined, opts: WalletCreateParams) => {
