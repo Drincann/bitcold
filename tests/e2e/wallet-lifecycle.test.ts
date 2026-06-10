@@ -47,6 +47,10 @@ function extractAddress(output: string): string | undefined {
   return match?.[0];
 }
 
+function extractSlip39Shares(output: string): string[] {
+  return [...output.matchAll(/share_\d+\s+(.+)/g)].map(match => match[1].trim());
+}
+
 describe('Bitcold E2E – Security & Cryptographic Truth', () => {
   let sandbox: CliSandbox;
 
@@ -200,6 +204,53 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       expect(addr2).toBeDefined();
       expect(addr1).not.toBe(addr2);
     }, 35000);
+
+    it('SLIP-39 shares can restore the same wallet mnemonic', async () => {
+      await createWallet(sandbox.sandboxDir, 'slip-source', TRUTH_SET_1.mnemonic);
+
+      const show = reuseDir(sandbox.sandboxDir);
+      show.run(['wallet', 'show', 'slip-source', '--slip-39', '--threshold', '2', '--shares', '3'], {
+        BITCOLD_PASSPHRASE: CLI_PASS
+      });
+      await show.waitFor('mnemonic passphrase');
+      await show.type('\r');
+      const shown = await show.finish();
+      const shares = extractSlip39Shares(shown.output);
+      expect(shares).toHaveLength(3);
+
+      const restore = reuseDir(sandbox.sandboxDir);
+      restore.run(['wallet', 'create', 'slip-restored', '--from-slip-39'], {
+        BITCOLD_PASSPHRASE: CLI_PASS
+      });
+      await restore.waitFor('Enter SLIP-39 share 1');
+      await restore.type(shares[0] + '\r');
+      await restore.waitFor('Enter SLIP-39 share 2');
+      await restore.type(shares[2] + '\r');
+      await restore.waitFor('Enter SLIP-39 share 3');
+      await restore.type('\r');
+      const restored = await restore.finish();
+      expect(restored.exitCode).toBe(0);
+
+      const sourceReceive = reuseDir(sandbox.sandboxDir);
+      sourceReceive.run(['wallet', 'receive', 'slip-source@account_0'], {
+        BITCOLD_PASSPHRASE: CLI_PASS,
+        BITCOLD_BITCOIN_NETWORK: 'mainnet'
+      });
+      await sourceReceive.waitFor('mnemonic passphrase');
+      await sourceReceive.type('\r');
+      const source = await sourceReceive.finish();
+
+      const restoredReceive = reuseDir(sandbox.sandboxDir);
+      restoredReceive.run(['wallet', 'receive', 'slip-restored@account_0'], {
+        BITCOLD_PASSPHRASE: CLI_PASS,
+        BITCOLD_BITCOIN_NETWORK: 'mainnet'
+      });
+      await restoredReceive.waitFor('mnemonic passphrase');
+      await restoredReceive.type('\r');
+      const restoredOutput = await restoredReceive.finish();
+
+      expect(extractAddress(restoredOutput.output)).toBe(extractAddress(source.output));
+    }, 45000);
   });
 
   // ───────────────────────────────────────────────────────────

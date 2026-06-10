@@ -1,4 +1,5 @@
 import { Command } from 'commander';
+import prompts from 'prompts';
 import { repositories as repos } from '../../../persistence/repository.mjs';
 import { CliParameterError } from '../../../error/cli-error.mjs';
 import { printer } from '../../output/index.mjs';
@@ -8,6 +9,7 @@ import { Wallet } from '../../../domain/wallet.mjs';
 import { withErrorHandler } from '../../utils/error-handler.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { containsWhite, ensureSingleWhiteSpace, isEmpty, isNumber, isString, isValidMnemonicLength, notIn, wordsSizeOf } from '../../../utils/validator.mjs';
+import { recoverMnemonicFromSlip39Shares } from '../../../crypto/slip39.mjs';
 
 interface WalletCreateParams {
   alias?: string
@@ -16,6 +18,8 @@ interface WalletCreateParams {
   passphrase?: string
   showMnemonic?: boolean
   entropy?: string
+  fromSlip39?: boolean
+  share?: string[]
 }
 
 export const walletCreateCommand = new Command()
@@ -28,6 +32,10 @@ export const walletCreateCommand = new Command()
   .option('-p --passphrase <passphrase>', 'Passphrase for the mnemonic (never saved, used for derivation preview only)')
   .option('-s --show-mnemonic', 'Show the mnemonic after creating the wallet', false)
   .option('-e --entropy <entropy>', 'Entropy for the wallet, use hex (0x...) or binary (0b...), 128/160/192/224/256 bits')
+  .option('--from-slip-39', 'Create a wallet from SLIP-39 shares', false)
+  .option('--share <share>', 'SLIP-39 share, can be specified multiple times (interactive prompt is used when omitted)', (value: string, previous: string[]) => {
+    return [...(Array.isArray(previous) ? previous : []), value]
+  }, [] as string[])
 
   .action(withErrorHandler(async (alias: string | undefined, opts: WalletCreateParams) => {
     if (alias) {
@@ -35,13 +43,14 @@ export const walletCreateCommand = new Command()
     }
     await ensureCliLevelSecretInitialized()
     fix(opts)
-    check(opts); assert(opts.entropy != undefined || isValidMnemonicLength(opts.mnemonicLength))
+    await ensureSlip39Shares(opts)
+    check(opts); assert(opts.fromSlip39 || opts.entropy != undefined || isValidMnemonicLength(opts.mnemonicLength))
 
     const walletName = opts.alias ?? await generateNextWalletName()
     await checkNameUnique(opts, walletName);
 
     const mnemonic = {
-      words: opts.mnemonic ?? mnemonicUtil.generate(toEntropyBuffer(opts.entropy) as Buffer | undefined ?? opts.mnemonicLength as 12 | 15 | 18 | 21 | 24),
+      words: resolveMnemonicWords(opts),
       passphrase: opts.passphrase
     }
 
@@ -83,11 +92,28 @@ function toEntropyBuffer(entropy?: string): Buffer | undefined {
 
 function check(opts: WalletCreateParams) {
   checkWalletAlias(opts.alias)
+  checkSlip39Options(opts)
   checkMnemonic(opts.mnemonic)
   if (opts.entropy != undefined) {
     checkEntropy(opts.entropy)
   } else {
     checkMnemonicLengthToGenerate(opts.mnemonicLength)
+  }
+}
+
+function checkSlip39Options(opts: WalletCreateParams) {
+  const shares = opts.share ?? []
+  if (!opts.fromSlip39 && shares.length > 0) {
+    throw new CliParameterError('--share requires --from-slip-39')
+  }
+  if (!opts.fromSlip39) {
+    return
+  }
+  if (opts.mnemonic !== undefined || opts.entropy !== undefined) {
+    throw new CliParameterError('--from-slip-39 cannot be used with --mnemonic or --entropy')
+  }
+  if (shares.length === 0) {
+    throw new CliParameterError('--from-slip-39 requires at least one SLIP-39 share')
   }
 }
 
@@ -150,6 +176,58 @@ function fix(opts: WalletCreateParams) {
   if (typeof opts.entropy === 'string') {
     opts.entropy = opts.entropy.trim()
   }
+
+  if (Array.isArray(opts.share)) {
+    opts.share = opts.share.map(share => ensureSingleWhiteSpace(share.trim()))
+  }
+}
+
+function resolveMnemonicWords(opts: WalletCreateParams): string {
+  if (opts.fromSlip39) {
+    return recoverMnemonicFromSlip39Shares(opts.share ?? [])
+  }
+
+  return opts.mnemonic ?? mnemonicUtil.generate(toEntropyBuffer(opts.entropy) as Buffer | undefined ?? opts.mnemonicLength as 12 | 15 | 18 | 21 | 24)
+}
+
+async function ensureSlip39Shares(opts: WalletCreateParams): Promise<void> {
+  if (!opts.fromSlip39 || (opts.share?.length ?? 0) > 0) {
+    return
+  }
+
+  opts.share = process.stdin.isTTY === false
+    ? normalizeShares(await readSlip39SharesFromStdin())
+    : await promptSlip39Shares()
+}
+
+async function promptSlip39Shares(): Promise<string[]> {
+  const shares: string[] = []
+  while (true) {
+    const result = await prompts({
+      type: 'password',
+      name: 'value',
+      message: `Enter SLIP-39 share ${shares.length + 1} (leave blank when done)`
+    })
+
+    if (typeof result.value !== 'string' || result.value.trim().length === 0) {
+      return shares
+    }
+    shares.push(ensureSingleWhiteSpace(result.value.trim()))
+  }
+}
+
+async function readSlip39SharesFromStdin(): Promise<string[]> {
+  const chunks: Buffer[] = []
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+  }
+  return Buffer.concat(chunks).toString('utf-8').split(/\r?\n/)
+}
+
+function normalizeShares(shares: string[]): string[] {
+  return shares
+    .map(share => ensureSingleWhiteSpace(share.trim()))
+    .filter(share => share.length > 0)
 }
 
 function entropyBitLength(entropy: string): number | undefined {
