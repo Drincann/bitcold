@@ -26,7 +26,7 @@ export const walletShowCommand = new Command()
   .argument('<alias-or-address-ref>', 'Wallet alias or wallet@account:index reference')
   .option('-p --private', 'Show private keys')
   .option('-m --mnemonic', 'Show mnemonic')
-  .option('--entropy', 'Show wallet mnemonic entropy as hexadecimal')
+  .option('-e --entropy', 'Show wallet mnemonic entropy as hexadecimal')
   .option('--slip-39', 'Show SLIP-39 shares for the wallet mnemonic')
   .option<number>('--threshold <n>', 'SLIP-39 share threshold', value => parseInt(value, 10))
   .option<number>('--shares <n>', 'SLIP-39 share count', value => parseInt(value, 10))
@@ -41,8 +41,8 @@ export const walletShowCommand = new Command()
       const derived = account.deriveAddress(0, index)
 
       printer.info(`Wallet: ${wallet.alias}`)
-      if (opts.mnemonic) printer.info(`Mnemonic: ${wallet.mnemonic.words}`);
       if (opts.entropy) printer.info(`Entropy: 0x${entropyHexOf(wallet.mnemonic.words)}`);
+      if (opts.mnemonic) printer.info(`Mnemonic: ${wallet.mnemonic.words}`);
       printer.info(`Account: ${account.alias}`)
       printer.info(`  path    ${derived.path}`)
       printer.info(`  address ${derived.address}`)
@@ -74,8 +74,8 @@ export const walletShowCommand = new Command()
 
 export function show(wallet: Wallet, opts: WalletShowOptions) {
   printer.info(`Wallet: ${wallet.alias}`);
-  if (opts.mnemonic) printer.info(`Mnemonic: ${wallet.mnemonic.words}`);
   if (opts.entropy) printer.info(`Entropy: 0x${entropyHexOf(wallet.mnemonic.words)}`);
+  if (opts.mnemonic) printer.info(`Mnemonic: ${wallet.mnemonic.words}`);
   [...wallet.accounts.entries()].forEach(([alias, account]) => {
     printer.info(`  ${alias}`)
     printer.info(`    path  ${getAccountPath(account.accountIndex)}`)
