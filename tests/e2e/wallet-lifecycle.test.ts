@@ -272,7 +272,8 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
         '--to', 'bcrt1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080',
         '--amount', '1000',
         '--fee', '200',
-        '--utxo', dummyUtxo
+        '--utxo', dummyUtxo,
+        '--yes'
       ], { BITCOLD_PASSPHRASE: CLI_PASS });
 
       await s.waitFor('mnemonic passphrase');
@@ -280,6 +281,8 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       const r = await s.finish();
       
       expect(r.exitCode).toBe(0);
+      expect(r.output).toContain('Transaction preview:');
+      expect(r.output).toContain('  change  3800 sats -> ');
       const txHex = r.output.match(/[0-9a-f]{100,}/i)?.[0];
       expect(txHex).toBeDefined();
       expect(txHex).toMatch(/^(01|02)000000/); // Version
@@ -297,7 +300,8 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
         '--to', 'bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu',
         '--amount', '5000',
         '--fee', '1000',
-        '--utxo', dummyUtxo
+        '--utxo', dummyUtxo,
+        '--yes'
       ], { 
         BITCOLD_PASSPHRASE: CLI_PASS,
         BITCOLD_BITCOIN_NETWORK: 'mainnet'
@@ -308,6 +312,7 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       const r = await s.finish();
       
       expect(r.exitCode).toBe(0);
+      expect(r.output).toContain('Transaction preview:');
       expect(r.output).toContain('Signed transaction');
       expect(r.output).toMatch(/[0-9a-f]{200,}/);
     }, 35000);
