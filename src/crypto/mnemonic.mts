@@ -39,6 +39,10 @@ export function generate(
   return mnemoniclib.generateMnemonic(strength)
 }
 
+export function entropyHexOf(mnemonic: string): string {
+  return mnemoniclib.mnemonicToEntropy(mnemonic)
+}
+
 export function derive(mnemonic: Mnemonic, accountIndex: number, change: number, index: number): {
   privateKey: { hex: string; wif: string }
   publicKey: string

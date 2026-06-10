@@ -120,8 +120,8 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       expect(addr).toBe(TRUTH_SET_2.regtest);
     }, 30000);
 
-    it('Entropy: 128-bit bits -> mnemonic (Truth Set 1)', async () => {
-      sandbox.run(['wallet', 'create', 'e1-wallet', '-b', TRUTH_SET_1.entropy, '-s'], {
+    it('Entropy: 128-bit binary -> mnemonic (Truth Set 1)', async () => {
+      sandbox.run(['wallet', 'create', 'e1-wallet', '--entropy', '0b' + TRUTH_SET_1.entropy, '-s'], {
         BITCOLD_PASSPHRASE: CLI_PASS
       });
       const r = await sandbox.finish();
@@ -129,13 +129,34 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       expect(normalizedOutput).toContain(TRUTH_SET_1.mnemonic);
     }, 30000);
 
-    it('Entropy: 128-bit bits -> mnemonic (Truth Set 2)', async () => {
-      sandbox.run(['wallet', 'create', 'e2-wallet', '-b', TRUTH_SET_2.entropy, '-s'], {
+    it('Entropy: 128-bit hex -> mnemonic (Truth Set 1)', async () => {
+      sandbox.run(['wallet', 'create', 'e1-hex-wallet', '-e', '0x' + '0'.repeat(32), '-s'], {
+        BITCOLD_PASSPHRASE: CLI_PASS
+      });
+      const r = await sandbox.finish();
+      const normalizedOutput = r.output.replace(/\s+/g, ' ');
+      expect(normalizedOutput).toContain(TRUTH_SET_1.mnemonic);
+    }, 30000);
+
+    it('Entropy: 128-bit binary -> mnemonic (Truth Set 2)', async () => {
+      sandbox.run(['wallet', 'create', 'e2-wallet', '--entropy', '0b' + TRUTH_SET_2.entropy, '-s'], {
         BITCOLD_PASSPHRASE: CLI_PASS
       });
       const r = await sandbox.finish();
       const normalizedOutput = r.output.replace(/\s+/g, ' ');
       expect(normalizedOutput).toContain(TRUTH_SET_2.mnemonic);
+    }, 30000);
+
+    it('Show entropy: displays wallet entropy as hex', async () => {
+      await createWallet(sandbox.sandboxDir, 'entropy-wallet', TRUTH_SET_1.mnemonic);
+
+      const s = reuseDir(sandbox.sandboxDir);
+      s.run(['wallet', 'show', 'entropy-wallet', '--entropy'], { BITCOLD_PASSPHRASE: CLI_PASS });
+      await s.waitFor('mnemonic passphrase');
+      await s.type('\r');
+      const r = await s.finish();
+
+      expect(r.output).toContain('Entropy: 0x' + '0'.repeat(32));
     }, 30000);
   });
 

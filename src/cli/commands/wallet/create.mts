@@ -15,7 +15,7 @@ interface WalletCreateParams {
   mnemonicLength: number
   passphrase?: string
   showMnemonic?: boolean
-  entropyBits?: string
+  entropy?: string
 }
 
 export const walletCreateCommand = new Command()
@@ -27,7 +27,7 @@ export const walletCreateCommand = new Command()
   .option<number>('-l --mnemonic-length <length> ', 'Length of the mnemonic you want to generate', length => parseInt(length), 12)
   .option('-p --passphrase <passphrase>', 'Passphrase for the mnemonic (never saved, used for derivation preview only)')
   .option('-s --show-mnemonic', 'Show the mnemonic after creating the wallet', false)
-  .option('-b --entropy-bits <bits>', 'Entropy bits for the wallet, receive 128, 160, 192, 224, 256 bits')
+  .option('-e --entropy <entropy>', 'Entropy for the wallet, use hex (0x...) or binary (0b...), 128/160/192/224/256 bits')
 
   .action(withErrorHandler(async (alias: string | undefined, opts: WalletCreateParams) => {
     if (alias) {
@@ -35,13 +35,13 @@ export const walletCreateCommand = new Command()
     }
     await ensureCliLevelSecretInitialized()
     fix(opts)
-    check(opts); assert(opts.entropyBits != undefined || isValidMnemonicLength(opts.mnemonicLength))
+    check(opts); assert(opts.entropy != undefined || isValidMnemonicLength(opts.mnemonicLength))
 
     const walletName = opts.alias ?? await generateNextWalletName()
     await checkNameUnique(opts, walletName);
 
     const mnemonic = {
-      words: opts.mnemonic ?? mnemonicUtil.generate(toBuffer(opts.entropyBits) as Buffer | undefined ?? opts.mnemonicLength as 12 | 15 | 18 | 21 | 24),
+      words: opts.mnemonic ?? mnemonicUtil.generate(toEntropyBuffer(opts.entropy) as Buffer | undefined ?? opts.mnemonicLength as 12 | 15 | 18 | 21 | 24),
       passphrase: opts.passphrase
     }
 
@@ -63,11 +63,16 @@ async function checkNameUnique(opts: WalletCreateParams, walletName: string) {
   }
 }
 
-function toBuffer(bits?: string): Buffer | undefined {
-  if (bits == undefined) {
+function toEntropyBuffer(entropy?: string): Buffer | undefined {
+  if (entropy == undefined) {
     return undefined
   }
 
+  if (/^0x[0-9a-f]+$/i.test(entropy)) {
+    return Buffer.from(entropy.slice(2), 'hex')
+  }
+
+  const bits = entropy.slice(2)
   const byteLength = bits.length / 8
   const buffer = Buffer.alloc(byteLength)
   for (let i = 0; i < byteLength; i++) {
@@ -79,8 +84,8 @@ function toBuffer(bits?: string): Buffer | undefined {
 function check(opts: WalletCreateParams) {
   checkWalletAlias(opts.alias)
   checkMnemonic(opts.mnemonic)
-  if (opts.entropyBits != undefined) {
-    checkEntropyBits(opts.entropyBits)
+  if (opts.entropy != undefined) {
+    checkEntropy(opts.entropy)
   } else {
     checkMnemonicLengthToGenerate(opts.mnemonicLength)
   }
@@ -106,13 +111,14 @@ function checkMnemonic(mnemonic: string | undefined) {
   }
 }
 
-function checkEntropyBits(entropyBits: string) {
+function checkEntropy(entropy: string) {
   const validBits = [128, 160, 192, 224, 256]
-  if (!validBits.includes(entropyBits.length)) {
-    throw new CliParameterError('entropy bits should be one of ' + validBits.join(', '))
+  const bits = entropyBitLength(entropy)
+  if (bits === undefined) {
+    throw new CliParameterError('entropy should use hex (0x...) or binary (0b...) format')
   }
-  if (!entropyBits.match(/^[01]+$/)) {
-    throw new CliParameterError('entropy bits should be a binary string containing only 0 and 1')
+  if (!validBits.includes(bits)) {
+    throw new CliParameterError('entropy should be one of ' + validBits.join(', ') + ' bits')
   }
 }
 
@@ -140,4 +146,20 @@ function fix(opts: WalletCreateParams) {
   if (typeof opts.mnemonic === 'string') {
     opts.mnemonic = ensureSingleWhiteSpace(opts.mnemonic.trim())
   }
+
+  if (typeof opts.entropy === 'string') {
+    opts.entropy = opts.entropy.trim()
+  }
+}
+
+function entropyBitLength(entropy: string): number | undefined {
+  if (/^0x[0-9a-f]+$/i.test(entropy)) {
+    return (entropy.length - 2) * 4
+  }
+
+  if (/^0b[01]+$/i.test(entropy)) {
+    return entropy.length - 2
+  }
+
+  return undefined
 }
