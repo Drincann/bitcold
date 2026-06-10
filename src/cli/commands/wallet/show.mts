@@ -5,8 +5,14 @@ import { repositories as repos } from '../../../persistence/repository.mjs';
 import { printer } from '../../output/index.mjs';
 import { ensureCliLevelSecretInitialized } from '../../../env/index.mjs';
 import { loadWalletWithBip39PassphrasePrompt, dereferenceAddress } from '../../utils/wallet-resolver.mjs';
-import { getAccountPath } from '../../../crypto/mnemonic.mjs';
+import { entropyHexOf, getAccountPath } from '../../../crypto/mnemonic.mjs';
 import { xpubkeySummary } from '../../../utils/display.mjs';
+
+interface WalletShowOptions {
+  mnemonic: boolean
+  private?: boolean
+  entropy?: boolean
+}
 
 export const walletShowCommand = new Command()
   .name('show')
@@ -15,8 +21,9 @@ export const walletShowCommand = new Command()
   .argument('<alias-or-address-ref>', 'Wallet alias or wallet@account:index reference')
   .option('-p --private', 'Show private keys')
   .option('-m --mnemonic', 'Show mnemonic')
+  .option('--entropy', 'Show wallet mnemonic entropy as hexadecimal')
 
-  .action(withErrorHandler(async (ref, opts) => {
+  .action(withErrorHandler(async (ref, opts: WalletShowOptions) => {
     await ensureCliLevelSecretInitialized()
 
     const isAddressRef = ref.includes(':')
@@ -26,6 +33,7 @@ export const walletShowCommand = new Command()
 
       printer.info(`Wallet: ${wallet.alias}`)
       if (opts.mnemonic) printer.info(`Mnemonic: ${wallet.mnemonic.words}`);
+      if (opts.entropy) printer.info(`Entropy: 0x${entropyHexOf(wallet.mnemonic.words)}`);
       printer.info(`Account: ${account.alias}`)
       printer.info(`  path    ${derived.path}`)
       printer.info(`  address ${derived.address}`)
@@ -55,9 +63,10 @@ export const walletShowCommand = new Command()
   }))
 
 
-export function show(wallet: Wallet, opts: { mnemonic: boolean, private?: boolean }) {
+export function show(wallet: Wallet, opts: WalletShowOptions) {
   printer.info(`Wallet: ${wallet.alias}`);
   if (opts.mnemonic) printer.info(`Mnemonic: ${wallet.mnemonic.words}`);
+  if (opts.entropy) printer.info(`Entropy: 0x${entropyHexOf(wallet.mnemonic.words)}`);
   [...wallet.accounts.entries()].forEach(([alias, account]) => {
     printer.info(`  ${alias}`)
     printer.info(`    path  ${getAccountPath(account.accountIndex)}`)
