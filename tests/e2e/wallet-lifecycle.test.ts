@@ -151,7 +151,7 @@ describe('Bitcold E2E – Security & Cryptographic Truth', () => {
       await createWallet(sandbox.sandboxDir, 'entropy-wallet', TRUTH_SET_1.mnemonic);
 
       const s = reuseDir(sandbox.sandboxDir);
-      s.run(['wallet', 'show', 'entropy-wallet', '--entropy'], { BITCOLD_PASSPHRASE: CLI_PASS });
+      s.run(['wallet', 'show', 'entropy-wallet', '-e'], { BITCOLD_PASSPHRASE: CLI_PASS });
       await s.waitFor('mnemonic passphrase');
       await s.type('\r');
       const r = await s.finish();

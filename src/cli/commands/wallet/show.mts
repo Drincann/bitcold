@@ -21,7 +21,7 @@ export const walletShowCommand = new Command()
   .argument('<alias-or-address-ref>', 'Wallet alias or wallet@account:index reference')
   .option('-p --private', 'Show private keys')
   .option('-m --mnemonic', 'Show mnemonic')
-  .option('--entropy', 'Show wallet mnemonic entropy as hexadecimal')
+  .option('-e --entropy', 'Show wallet mnemonic entropy as hexadecimal')
 
   .action(withErrorHandler(async (ref, opts: WalletShowOptions) => {
     await ensureCliLevelSecretInitialized()
