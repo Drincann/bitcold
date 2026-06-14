@@ -1,246 +1,106 @@
 {
   "repo_notes": [
     {
-      "content": ""
+      "content": "bitcold is a TypeScript CLI for Bitcoin cold-wallet management, local encrypted wallet storage, recovery material handling, and offline transaction signing."
     }
   ],
   "pages": [
     {
       "title": "Overview",
-      "purpose": "High-level introduction to bitcold: what it is, its purpose as a Bitcoin cold wallet CLI, key design principles (offline-first, air-gapped), and a map of the major subsystems. Links to child pages for details.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "purpose": "Introduce bitcold's product goal, offline-first workflow, major capabilities, and the top-level source layout."
     },
     {
       "title": "Getting Started",
-      "purpose": "Installation, build process, environment variables (BITCOLD_BITCOIN_NETWORK, BITCOLD_PASSPHRASE), and the first-run passphrase setup flow. Covers bin/run.js entrypoint and tsconfig/build pipeline.",
-      "parent": "Overview",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "purpose": "Cover installation, build/test commands, CLI entrypoint, runtime environment variables, and first-run setup.",
+      "parent": "Overview"
     },
     {
-      "title": "CLI Command Reference",
-      "purpose": "Complete reference for all bitcold commands: wallet and tx namespaces, their arguments, options, and expected outputs. Summarizes the full command tree and links to deeper subsystem pages.",
-      "parent": "Overview",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Command Reference",
+      "purpose": "Map the full CLI command tree and summarize each command's arguments, options, prompts, and output.",
+      "parent": "Overview"
     },
     {
-      "title": "Architecture Overview",
-      "purpose": "Describes the layered architecture of bitcold: CLI layer → Domain layer → Persistence layer. Explains how data flows from user input to signed transaction output. Links to child pages for each layer.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Architecture",
+      "purpose": "Explain the main layers and how data flows through CLI commands, domain objects, crypto helpers, and encrypted persistence."
     },
     {
       "title": "CLI Layer",
-      "purpose": "Details the CLI layer: how commander is used to define commands, the printer output utility, the logger, and the cli-level error handling pattern. Covers src/cli/ directory structure.",
-      "parent": "Architecture Overview",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "purpose": "Describe command registration, command implementations, shared CLI utilities, output handling, and error handling.",
+      "parent": "Architecture"
     },
     {
-      "title": "Domain Layer",
-      "purpose": "Explains the domain model: Wallet, Account, BtcAddress, and Transaction classes. Covers how domain objects are constructed, serialized.",
-      "parent": "Architecture Overview",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Domain Model",
+      "purpose": "Describe the wallet, account, address, and transaction domain objects and their responsibilities.",
+      "parent": "Architecture"
     },
     {
-      "title": "Persistence Layer",
-      "purpose": "Covers the encrypted storage system: EncryptedUserHomeJsonStorage, WalletRepository, the ~/.bitcold directory, file permissions (0o700), lazy-loading cache, and the read-modify-write cycle for wallet CRUD.",
-      "parent": "Architecture Overview",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Persistence",
+      "purpose": "Describe encrypted wallet storage, repository responsibilities, storage location, initialization, and CRUD flow.",
+      "parent": "Architecture"
     },
     {
-      "title": "Wallet Management",
-      "purpose": "Overview of all wallet lifecycle operations: creation, display, listing, renaming, removal, and account management. Links to child pages for each major operation group.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Wallet Workflows",
+      "purpose": "Group wallet lifecycle workflows: create, import, recover, show, list, rename, remove, receive, and account management."
     },
     {
-      "title": "Wallet Creation and Import",
-      "purpose": "Deep dive into the wallet create command: mnemonic generation, entropy-bits input, BIP39 passphrase, ephemeral mode, alias validation, and the Wallet.generateWithDefaultAccount() factory flow.",
-      "parent": "Wallet Management",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Wallet Creation and Recovery",
+      "purpose": "Cover wallet creation from generated mnemonic, imported mnemonic, custom entropy, and SLIP-39 recovery shares.",
+      "parent": "Wallet Workflows"
+    },
+    {
+      "title": "Wallet Display and Receive",
+      "purpose": "Cover wallet show/list/receive behavior, address references, private data flags, entropy display, QR output, and change-chain receive addresses.",
+      "parent": "Wallet Workflows"
     },
     {
       "title": "Account Management",
-      "purpose": "Explains the wallet account add/remove sub-commands, BIP44 derivation index assignment, alias generation (account_n pattern), and the constraint preventing removal of the last account.",
-      "parent": "Wallet Management",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Wallet Display and Listing",
-      "purpose": "Covers wallet show (with --private and --mnemonic flags), wallet list (with locked/unlocked summary), and the show() helper function that formats wallet output including derivation paths and addresses.",
-      "parent": "Wallet Management",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "purpose": "Cover account add/remove workflows, account aliases, derivation indexes, and top-level account command shortcuts.",
+      "parent": "Wallet Workflows"
     },
     {
       "title": "Transaction Signing",
-      "purpose": "Overview of the tx sign command pipeline: UTXO input parsing, address resolution (wallet@account refs:addressindex), PSBT construction, signing with ECPair/secp256k1, fee-rate calculation, and QR code output. Links to child pages.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "purpose": "Cover tx sign workflow, input validation, transaction preview, confirmation, raw transaction output, and QR output."
     },
     {
-      "title": "PSBT Construction and Signing",
-      "purpose": "Technical details of how UnsignedBtcTransaction (PSBT) is built from UTXOs, how change outputs are calculated, how BtcAddress.sign() uses ECPairFactory and tiny-secp256k1 to sign all inputs, and how SignedBtcTransaction.hex() produces the final raw transaction.",
-      "parent": "Transaction Signing",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "PSBT Construction",
+      "purpose": "Explain how UTXOs become a PSBT, how outputs/change are calculated, and how the final transaction is signed.",
+      "parent": "Transaction Signing"
     },
     {
-      "title": "Address Resolution and Validation",
-      "purpose": "Explains the wallet@account address reference syntax, how resolveAddress() and dereferenceAddress() look up BtcAddress objects from the repository, and the validator utilities (isNotValidBtcAddressOrRef, isAddressRef, isNotValidHex, etc.).",
-      "parent": "Transaction Signing",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Address References",
+      "purpose": "Explain wallet@account[:index] references, raw address validation, and how commands resolve local wallet references.",
+      "parent": "Transaction Signing"
     },
     {
-      "title": "Cryptographic Subsystems",
-      "purpose": "Overview of all cryptographic primitives used in bitcold: AES-256-GCM encryption, scrypt KDF, BIP32/BIP84 HD derivation, BIP39 mnemonic generation, and Base58 encoding. Links to child pages for each subsystem.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Cryptography",
+      "purpose": "Organize the cryptographic subsystems: storage encryption, HD wallet derivation, mnemonic handling, and SLIP-39."
     },
     {
-      "title": "AES-256-GCM Encryption and scrypt KDF",
-      "purpose": "Details the EncryptedEnvelopeV1 format, aesEncrypt/aesDecrypt functions, scrypt key derivation parameters, the AesAuthenticationError, and how the envelope is stored as JSON on disk.",
-      "parent": "Cryptographic Subsystems",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Storage Encryption",
+      "purpose": "Cover AES-GCM encrypted envelopes, scrypt key derivation, and CLI passphrase based decryption.",
+      "parent": "Cryptography"
     },
     {
-      "title": "HD Wallet Key Derivation (BIP32/BIP84/BIP39)",
-      "purpose": "Explains the BTC_DERIVATION_PATH_PREFIX (m/84'/0'/0'/0), the derive() function that produces privateKey (hex+WIF), publicKey, and P2WPKH address, mnemonic generation from word count or raw entropy buffer, and the bip32/bip39/tiny-secp256k1 dependency chain.",
-      "parent": "Cryptographic Subsystems",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "HD Wallet Derivation",
+      "purpose": "Cover BIP39 mnemonic handling, BIP32/BIP84 derivation paths, network-specific coin types, and account/address key derivation.",
+      "parent": "Cryptography"
+    },
+    {
+      "title": "SLIP-39",
+      "purpose": "Cover the supported SLIP-39 split/recover scope, command integration, and compatibility expectations.",
+      "parent": "Cryptography"
     },
     {
       "title": "Security Model",
-      "purpose": "Comprehensive explanation of bitcold's security design: CLI-level passphrase protecting the storage, per-wallet mnemonic passphrase (25th word), AES-256-GCM authenticated encryption, directory permissions, and the air-gap workflow.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "purpose": "Explain the separation between CLI storage passphrase, optional BIP39 passphrase, sensitive outputs, and offline/air-gapped usage."
     },
     {
-      "title": "CLI Passphrase and Storage Encryption",
-      "purpose": "Details the ensureCliLevelSecretInitialized() flow: first-run passphrase creation with confirmation, subsequent passphrase prompting, BITCOLD_PASSPHRASE env var bypass, and how the wrong passphrase is detected via AES-GCM auth tag failure.",
-      "parent": "Security Model",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Wallet Mnemonic Passphrase (BIP39 25th Word)",
-      "purpose": "Explains the per-wallet mnemonic passphrase: it is prompted at each wallet operation with confirmation when non-empty, then used directly for BIP39 seed derivation. The passphrase is never persisted and there is no correctness verification — an incorrect passphrase will silently derive different addresses. Users must verify the resulting address matches their expectation.",
-      "parent": "Security Model"
-    },
-    {
-      "title": "Utilities and Shared Libraries",
-      "purpose": "Overview of shared utility modules: input validators, functional helpers (toMap, identity), display formatters, and the libs/ directory containing reusable core/persistence/utils abstractions.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Input Validation",
-      "purpose": "Documents all validator functions in src/utils/validator.mts: isNotValidBtcAddressOrRef (multi-network try-catch), isAddressRef, isNotValidBech32, isNotValidHex, isValidMnemonicLength, isNotInt, isNotNumber, ensureSingleWhiteSpace, and the ECC initialization side-effect.",
-      "parent": "Utilities and Shared Libraries",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Functional Utilities and Display Helpers",
-      "purpose": "Covers the fp.mts utilities (toMap, identity) used for Map construction in Wallet, the display.mts helpers (addressSummary, accountSummary) for truncated address display, and the libs/utils/functional.mts equivalents.",
-      "parent": "Utilities and Shared Libraries",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Testing Infrastructure",
-      "purpose": "Covers the E2E test suite: CliSandbox helper for spawning isolated CLI processes with temp HOME directories, tty-hook for intercepting prompts, the wallet-lifecycle test scenarios (cryptographic truth sets, security tests), and how BITCOLD_PASSPHRASE is used to bypass interactive prompts in tests.",
-      "parent": "Utilities and Shared Libraries",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "title": "Testing",
+      "purpose": "Describe unit and E2E test organization, CLI sandboxing, prompt automation, truth-set tests, and command workflow coverage."
     },
     {
       "title": "Glossary",
-      "purpose": "Definitions of all codebase-specific terms, Bitcoin protocol concepts, BIP standards, and abbreviations used throughout bitcold. Each entry includes code pointers to relevant files and functions.",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
+      "purpose": "Define project-specific terms, command concepts, Bitcoin standards, and security-sensitive recovery/signing terminology."
     }
   ]
 }
